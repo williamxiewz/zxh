@@ -1,0 +1,116 @@
+<!--pages/userConsole/userConsole.wxml-->
+<view class="container">
+  <import src="../../template/pairdevice.wxml" />
+  <template is="pairdevice" data="{{...pairdevice}}" />
+  <import src="../../template/sharedevice.wxml" />
+  <template is="sharedevice" data="{{...sharedevice}}" />
+  <import src="../../template/inputlogo.wxml" />
+  <template is="inputlogo" data="{{...inputlogo}}" />
+
+  <scroll-view scroll-y="true" style="height: {{windowHeight}}px;">
+    <!-- 用户 openid -->
+    <view class="userinfo" style="background:white;">
+      <view class="userinfo-avatar" style="background-image: url({{avatarUrl}})"></view>
+      <button wx:if="{{canIUseGetUserProfile}}" bindtap="getUserProfile" class="userinfo-nickname">{{nickname}}</button>
+      <button wx:else open-type="getUserInfo" bindgetuserinfo="onGetUserInfo" class="userinfo-nickname">{{nickname}}</button>
+    </view>
+
+    <view class="list">
+      <!-- <view class="container-h" style="align-items:center;justify-content:center;" bindtap="scanDevice">
+        <text class="request-text">搜索设备</text>
+        <icon type="search" size="32" />
+      </view> -->
+      <view class="list-item">
+        <text class="request-text">我的设备</text>
+      </view>
+      <radio-group style="padding-bottom: 20rpx;" bindchange="deviceChange">
+        <label wx:for="{{devices}}" wx:key="{{item.index}}">
+          <view class="radio {{mac != '' && mac == item.mac? 'radio-checked':'radio-unchecked'}}" bindtap="addDevice"
+            bindlongpress="removeDevice" data-item="{{item}}">
+            <!-- <radio value="{{mac}}" checked="{{deviceIndex == item.index}}" /> -->
+            <view style="color:{{ item.deviceId=='' || item.connected? 'black':'#dddddd'}};">{{item.name}}
+              {{item.version}}</view>
+          </view>
+        </label>
+      </radio-group>
+
+      <!-- <view class="list-item">
+        <text class="request-text">蓝牙连接状态：{{bleState}}</text>
+      </view>
+      <view class="list-item">
+        <text class="request-text">设备状态：{{deviceState}}</text>
+      </view>
+      <view class="list-item" bindtap="removeDevice">
+        <text class="request-text">清除匹配</text>
+      </view> -->
+
+      <!-- 灵敏度调节 1~5 -->
+      <view class="list-item">
+        <view class="container-v" style="width:100%">
+          <text class="request-text">灵敏度调节</text>
+          <view class="container-h" style="align-items:center;">
+            <slider min="1" max="5" value="{{sensitivity}}" show-value="false" style="width:90%;"
+              bindchange="onSensitivityChange">
+            </slider>
+            <!-- <text style="color:black;">{{sensitivity+1}}</text> -->
+          </view>
+        </view>
+      </view>
+      <!-- 分享借车 -->
+      <view class="list-item" bindtap="shareDevice">
+        <view class="container-v">
+          <text class="request-text">分享借车</text>
+          <text style="font-size: 28rpx;line-height: 36rpx;">借车码24小时有效，每天零时更新</text>
+        </view>
+      </view>
+      <!-- 设置解除限速 1-限速，2-不限速 -->
+      <view class="list-item" style="align-items:center;">
+        <view class="container-v">
+          <text class="request-text">设置调试模式</text>
+          <text style="font-size: 28rpx;line-height: 36rpx;">选择后可进入调试模式（整车启动状态下有效）</text>
+        </view>
+        <view style="flex:1;"></view>
+        <switch type="checkbox" bindchange="onSpeedLimitChange" checked="{{disableSpeedLimit}}"></switch>
+      </view>
+      <!-- 限速提示音量 1~3 -->
+      <view class="list-item">
+        <view class="container-v" style="width:100%">
+          <text class="request-text">限速提示音量</text>
+          <view class="container-h" style="align-items:center;">
+            <slider min="1" max="3" value="{{volume}}" show-value="false" style="width:90%;"
+              bindchange="onVolumeChange">
+            </slider>
+            <!-- <text style="color:black;">{{volume+1}}</text> -->
+          </view>
+        </view>
+      </view>
+      <!-- 品牌LOGO设置 -->
+      <view class="list-item" bindtap="setLogo">
+        <view class="container-v">
+          <text class="request-text">品牌Logo设置</text>
+          <text style="font-size: 28rpx;line-height: 36rpx;">点击设置品牌Logo</text>
+        </view>
+      </view>
+      <!-- 版本信息 -->
+      <view class="list-item">
+        <text class="request-text" style="flex:1;">版本信息</text>
+        <text class="request-text">V1.0.2</text>
+      </view>
+      <!-- test -->
+      <!-- <view class="list-item" bindtap="test">
+        <text class="request-text" style="flex:1;">测试XXX</text>
+      </view> -->
+      <!-- 测试加密算法 -->
+      <!-- <view class="list-item" style="align-items:center;">
+        <view class="container-v">
+          <text class="request-text">设置加密</text>
+          <text style="font-size: 28rpx;line-height: 36rpx;">选择后交互数据会被加密</text>
+        </view>
+        <view style="flex:1;"></view>
+        <switch type="checkbox" bindchange="onEncryptChange" checked="{{isEncrypt}}"></switch>
+      </view> -->
+
+    </view>
+  </scroll-view>
+
+</view>

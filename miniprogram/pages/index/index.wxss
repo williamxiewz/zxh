@@ -1,0 +1,9 @@
+/**index.wxss**/
+
+page {
+  background: #071A3F;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background-size: 100% 100%;
+}

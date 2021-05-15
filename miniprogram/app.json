@@ -1,0 +1,35 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/userConsole/userConsole",
+    "pages/scanle/scanle"
+  ],
+  "window": {
+    "backgroundColor": "#F6F6F6",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#F6F6F6",
+    "navigationBarTitleText": "众鑫汇智控",
+    "navigationBarTextStyle": "black"
+  },
+  "usingComponents": {
+    "van-count-down": "./dist/count-down/index"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#AAAAAA",
+    "selectedColor": "#5EDCF2",
+    "list": [{
+        "pagePath": "pages/index/index",
+        "iconPath": "images/tab_ctrl.png",
+        "text": "控制"
+      },
+      {
+        "pagePath": "pages/userConsole/userConsole",
+        "iconPath": "images/tab_settings.png",
+        "text": "设置"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2"
+}

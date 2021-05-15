@@ -1,0 +1,21 @@
+<!--index.wxml-->
+<view class='container-v'>
+  <scroll-view scroll-y='false' scroll-x='false' style="flex:1;height:{{scrollheight}}px">
+    <view wx:for='{{list}}' wx:for-index='idx' wx:for-item='device' data-deviceid='{{device.deviceId}}' data-name='{{device.name}}' data-advertisServiceUUIDs='{{device.advertisServiceUUIDs}}' wx:key='{{device.deviceId}}' bindtap='onItemClick' class='container-h'
+      style='flex:1' hover-class='hover-bg' hover-start-time='0' hover-stay-time='0'>
+      <view class='container-v' style='width:50px;align-items: center'>
+        <image style='width:24px;height:18px;margin-top:6px' src='{{device.rssi_iamge}}' mode='aspectFill' />
+        <view class='text-normal'>{{device.rssi}}</view>
+      </view>
+      <view style='flex:1;width:100px'>
+        <view class='text-bold' style='blod'>{{device.name }}</view>
+        <view class='text-normal'>{{device.deviceId}}</view>
+        <view class='text-normal'>{{device.uuid}}</view>
+        <view class='text-normal' style='word-break: break-all'>{{device.advertisData}}</view>
+        <view class='list-devider' />
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- <cover-view>搜索不到设备？</cover-view> -->
+</view>

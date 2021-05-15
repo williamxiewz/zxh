@@ -1,0 +1,11 @@
+<template name="inputlogo">
+	<view>
+		<modal title="品牌Logo设置" confirm-text="确认" cancel-text="取消" hidden="{{hidden}}" bindconfirm="setLogoConfirm" bindcancel="setLogoCancel">
+			<label>
+				<view style="width:100%;display: flex;justify-content: center;">
+					<input class="input2" type="text" maxlength="16" bindinput="onLogoInput" value="{{text}}"/>
+				</view>
+			</label>
+		</modal>
+	</view>
+</template>

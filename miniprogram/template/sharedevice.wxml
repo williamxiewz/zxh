@@ -1,0 +1,12 @@
+<template name="sharedevice">
+	<view>
+		<modal title="{{title}}" no-cancel="true" confirm-text="关闭" hidden="{{hidden}}" bindconfirm="sharedeviceCancel">
+			<label>
+				<view class="container-v" style="width:100%;justify-content:center;align-items:center;">
+					<canvas style="width: 200px; height: 200px;" canvas-id="myQrcode"></canvas>
+					<text style="color:black;">{{text}}</text>
+				</view>
+			</label>
+		</modal>
+	</view>
+</template>

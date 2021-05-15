@@ -1,0 +1,33 @@
+/**index.wxss**/
+
+.device-list {
+  display: flex;
+  flex-direction: column;
+  padding: 40rpx;
+}
+
+.text-normal {
+  padding-left: 30rpx;
+  padding-right: 30rpx;
+  padding-top: 10rpx;
+  padding-bottom: 10rpx;
+  font-size: 30rpx;
+}
+
+.text-bold {
+  padding-left: 30rpx;
+  padding-right: 30rpx;
+  padding-top: 10rpx;
+  font-weight: bold;
+  color: #666;
+}
+
+.list-devider {
+  background-color: #ddd;
+  height: 1rpx;
+  width: 100%;
+}
+
+.hover-bg {
+  background-color: #ddd;
+}

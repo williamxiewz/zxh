@@ -1,0 +1,12 @@
+<template name="pairdevice">
+	<view>
+		<modal title="{{title}}" no-cancel="true" confirm-text="取消" hidden="{{hidden}}" bindconfirm="pairdeviceCancel">
+			<label>
+				<view class="container-v" style="width:100%;justify-content:center;align-items:center;">
+					<text style="color:black;">{{text}}</text>
+					<van-count-down class="control-count-down" millisecond time="{{time}}" format="ss 秒" auto-start="false" />
+				</view>
+			</label>
+		</modal>
+	</view>
+</template>
