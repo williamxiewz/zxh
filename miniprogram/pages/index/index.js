@@ -71,7 +71,7 @@ Page({
         let text = util.arrayBufferToString(wx.base64ToArrayBuffer(res.result))
         console.info('借车码', text)
 
-        dbutil.addDeviceByQRCode(text, function (res2) {
+        dbutil.addDeviceByQRCode(text, app.globalData.platform, function (res2) {
           console.log('扫码添加设备', res2)
           viewutil.toast(res2.result.msg)
           if (res2.result.code == 0) {
@@ -85,16 +85,18 @@ Page({
 
   //开启定时器读取RSSI，发送心跳包
   startTimer: function () {
-    var that = this
+    var that = this;
 
-    clearInterval(that.data.timerId)
+    clearInterval(that.data.timerId);
 
     //定时器启动前先发一包心跳包数据
     if (app.globalData.isNetworkOn) {
-      bleproxy.send(sputil.getDeviceId(), bledata.queryState(), false)
+      bleproxy.send(sputil.getDeviceId(), bledata.queryState(), false);
+      //todo 2021-6-20
+      bleproxy.connect(sputil.getDeviceId());
     }
 
-    console.log('启动定时器')
+    console.log('启动定时器');
 
     var timerId = setInterval(function () {
       //定时获取RSSI
@@ -105,30 +107,41 @@ Page({
           var RSSI_Image = viewutil.getIamgeByRssi(result.RSSI)
           that.setData({
             RSSI_Image: RSSI_Image
-          })
+          });
         }
-      })
+      });
 
 
       let count = that.data.timerCount + 1
       that.setData({
         timerCount: count
-      })
+      });
       if ((count % 2) == 0) {
         //每30秒查询一次状态作为心跳包
         //console.info('######### 计数器 ' + count)
         bleproxy.sendToConnectedDevices(bledata.queryState())
       }
 
-    }, 5000)
+      //todo 2021-7-29 带感应功能【HID配对】的产品，配对后没广播，通过 deviceId 去连接
+      const devices = sputil.getDevices();
+      console.log('typeof(sputil.getDevices())=' + typeof (devices));
+      if (typeof (devices) == 'object') {
+        devices.forEach(element => {
+          if (element.type != '+BA01') {
+            bleproxy.connect(element.deviceId);
+          }
+        });
+      }
+
+    }, 5000);
     that.setData({
       timerId: timerId
-    })
+    });
   },
 
 
   onLoad: function () {
-    var that = this
+    var that = this;
 
     wx.getBluetoothAdapterState({
       success: (result) => {
@@ -142,7 +155,7 @@ Page({
       if (res.hidden) {
         that.stopAlarm()
       } else {
-
+        that.startTimer();
       }
 
     })
@@ -278,13 +291,14 @@ Page({
     onfire.un('onBLECharacteristicValueChange_index')
     onfire.un('onBluetoothAdapterStateChange_index')
     onfire.un('onAppHide_index')
-
   },
 
   onShow: function () {
     var that = this
-    const isConnected = bleproxy.isConnected(sputil.getDeviceId())
-    that.startTimer()
+    const isConnected = bleproxy.isConnected(sputil.getDeviceId());
+    that.startTimer();
+
+    console.error('xxxxxxxxxxxxxxxxxxxxxxxxxxx isUserAvailable=' + app.isUserAvailable());
 
     that.setData({
       logo: sputil.getLogo(),
@@ -318,85 +332,65 @@ Page({
     })
   },
 
-
-  pay: function () {
-    var self = this;
-    //调用微信支付云接口
-    wx.cloud.callFunction({
-      name: 'wechatpay',
-      data: {
-        totalFee: 1 //金额(单位：分)
-      },
-      success: res => {
-        console.error('调用微信支付云接口', res)
-        const payment = res.result.payment
-        wx.requestPayment({
-          ...payment,
-          success(res) {
-            app.globalData.myuser.is_vip = true //更新为付费用户
-            console.log('更新为付费用户', app.globalData.myuser.is_vip)
-            console.log('支付成功', res)
-          },
-          fail(res) {
-            console.error('支付失败', res)
-          }
-        })
-      },
-      fail: console.error,
-    })
-  },
-
   sendPayload: function (cmdCode) {
-
     if (!app.globalData.isNetworkOn) {
-      viewutil.toast('网络已断开')
-      return
+      viewutil.toast('网络已断开');
+      return;
     }
 
-    var that = this
-    const myuser = app.globalData.myuser
-    console.log('index.js sendPayload()', myuser)
+    var that = this;
+    const deviceType = sputil.getDeviceType();
+    if (deviceType == '+BA01' || deviceType == '') {
+      //第一代产品限制使用次数
+      const myuser = app.globalData.myuser;
+      console.log('index.js sendPayload()', myuser);
 
-    let deviceId = sputil.getDeviceId()
-    var isShare = false //是否是通过扫码添加的设备
-    let devices = sputil.getDevices()
-    devices.forEach(element => {
-      if (sputil.getDeviceMac() == element.mac) {
-        isShare = element.openids.indexOf(app.globalData.openid, 0) == -1
-      }
-    });
+      var isShare = false; //是否是通过扫码添加的设备
+      let devices = sputil.getDevices();
+      devices.forEach(element => {
+        if (sputil.getDeviceMac() == element.mac) {
+          isShare = element.openids.indexOf(app.globalData.openid, 0) == -1;
+        }
+      });
 
-    if (!isShare) {
-      //非分享设备，非VIP用户只可使用20次
-      if (!myuser.is_vip && myuser.use_times > 20) {
-        console.error('可免费使用20次，目前已使用次数：' + myuser.use_times)
-        wx.showModal({
-          content: '免费体验已达到上限！如需继续使用手机控车功能，需付费18元，永久使用。',
-          success: (res) => {
-            if (res.confirm) {
-              that.pay(1800)
+      if (!isShare) {
+        //非分享设备，非VIP用户只可使用20次
+        if (!app.isUserAvailable() && myuser.use_times > 20) {
+          console.error('可免费使用20次，目前已使用次数：' + myuser.use_times);
+          wx.showModal({
+            content: '免费体验已达到上限！如需继续使用手机控车功能，需付费18元，永久使用。',
+            success: (res) => {
+              if (res.confirm) {
+                that.pay(1800);
+              }
             }
-          }
-        })
-        return
+          });
+          return;
+        }
       }
     }
 
+    const deviceId = sputil.getDeviceId();
     if (bleproxy.isConnected(deviceId)) {
-      app.globalData.myuser.use_times++
-      let useTimes = app.globalData.myuser.use_times
-      console.log('index.js sendPayload() - use_times=' + useTimes)
+      app.globalData.myuser.use_times++;
+      let useTimes = app.globalData.myuser.use_times;
+      console.log('index.js sendPayload() - use_times=' + useTimes);
       dbutil.updateUserUseTimes(useTimes, function (res2) {
-        console.log('更新用户使用次数 ' + useTimes, res2)
-      })
+        console.log('更新用户使用次数 ' + useTimes, res2);
+      });
     }
 
     if (deviceId != '') {
-      var arr = new Uint8Array(util.hex2array(sputil.getSensitivity()))
-      let sensitivity = arr[0]
-      let limitSpeed = arr[1] == 1
-      let volume = arr[2]
-      bleproxy.send(deviceId, bledata.mkData(cmdCode, sensitivity, limitSpeed, volume, 4))
+      var arr = new Uint8Array(util.hex2array(sputil.getSensitivity()));
+      let sensitivity = arr[0];
+      let limitSpeed = arr[1] == 1;
+      let volume = arr[2];
+      if (sputil.getDeviceType() == '+BA02') {
+        //最后一个感应参数0就是为了使第七个字节变为2
+        bleproxy.send(deviceId, bledata.mkData(cmdCode, sensitivity, limitSpeed, volume, 4, 0));
+      } else {
+        bleproxy.send(deviceId, bledata.mkData(cmdCode, sensitivity, limitSpeed, volume, 4));
+      }
     }
   },
 
@@ -602,7 +596,10 @@ Page({
         wx.requestPayment({
           ...payment,
           success(res) {
-            console.log('支付成功', res)
+            console.log('支付成功', res);
+            sputil.setPaySuccess(true);
+            app.globalData.myuser.is_vip = true; //更新为付费用户
+            console.log('更新为付费用户', app.globalData.myuser.is_vip);
           },
           fail(res) {
             console.log('支付失败', res)

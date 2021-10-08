@@ -34,13 +34,16 @@ function encryptPayload(value) {
   uint8Array[4] = (uint8Array[0] + uint8Array[2] + uint8Array[6] + uint8Array[8] + uint8Array[10]) & 0xFF
   uint8Array[5] = (uint8Array[1] ^ uint8Array[3] ^ uint8Array[7] ^ uint8Array[9] ^ uint8Array[11]) & 0xFF
 
-  console.log('encryptPayload()', array2hex(uint8Array.buffer))
+  console.log('encryptPayload() - len=' + value.byteLength, array2hex(uint8Array.buffer))
 
   let encrypted = new Uint8Array(value.byteLength)
   for (var i = 0; i < 4; i++) {
     encrypted[i] = uint8Array[i]
     encrypted[4 + 2 * i] = (uint8Array[4 + 2 * i] ^ uint8Array[i]) & 0xFF
     encrypted[5 + 2 * i] = (uint8Array[5 + 2 * i] + uint8Array[i]) & 0xFF
+  }
+  if (value.byteLength == 13) {
+    encrypted[12] = uint8Array[12]; //加密解密相关的只有前12字节
   }
   //decryptPayload(encrypted.buffer)
   return array2hex(encrypted.buffer, false)
@@ -60,6 +63,8 @@ function decryptPayload(value) {
     decrypted[4 + 2 * i] = (encrypted[4 + 2 * i] ^ encrypted[i]) & 0xFF
     decrypted[5 + 2 * i] = (encrypted[5 + 2 * i] - encrypted[i]) & 0xFF
   }
+
+  if (value.byteLength == 13) decrypted[12] = encrypted[12] //加密解密相关的只有前12字节
 
   let byte4 = (decrypted[0] + decrypted[2] + decrypted[6] + decrypted[8] + decrypted[10]) & 0xFF
   let byte5 = (decrypted[1] ^ decrypted[3] ^ decrypted[7] ^ decrypted[9] ^ decrypted[11]) & 0xFF
@@ -107,8 +112,8 @@ function hex2array(hex) {
 function randomSelfID() {
   var id = "";
   for (var i = 0; i < 4; i++) {
-    let v = Math.floor(Math.random() * 256);//[0, 256)随机一个整数
-    id += ('0' + v.toString(16)).slice(-2).toUpperCase();//转化成十六进制
+    let v = Math.floor(Math.random() * 256); //[0, 256)随机一个整数
+    id += ('0' + v.toString(16)).slice(-2).toUpperCase(); //转化成十六进制
   }
   //console.log("生成手机ID: " + id);
   return id;

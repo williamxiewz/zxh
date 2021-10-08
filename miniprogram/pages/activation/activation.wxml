@@ -1,0 +1,5 @@
+<!--miniprogram/pages/activation/activation.wxml-->
+<view>
+  <input placeholder="请输入您的激活码" bindinput="onCodeInput" style="padding: 10px;background:white;" />
+  <button type="primary" bindtap="onOkClick" style="margin-top:30px;">确定</button>
+</view>

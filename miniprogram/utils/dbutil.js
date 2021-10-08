@@ -62,12 +62,13 @@ const delDevice = (myDevice, complete) => {
   })
 }
 
-const addDeviceByQRCode = (qrcode, complete) => {
+const addDeviceByQRCode = (qrcode, platform, complete) => {
   wx.cloud.callFunction({
     name: 'myclouddb',
     data: {
       action: 'addDeviceByQRCode',
-      qrcode: qrcode
+      qrcode: qrcode,
+      platform: platform
     },
     complete: complete
   })

@@ -40,8 +40,8 @@ const startLeScan = (allowDuplicatesKey = true, timeout = 0) => {
   wx.startBluetoothDevicesDiscovery({
     //services: [gattattrs.SERVICE_UUID],
     allowDuplicatesKey: allowDuplicatesKey,
-    interval: 3000,//上报设备的间隔。0 表示找到新设备立即上报，其他数值根据传入的间隔上报。
-    powerLevel: 'high',//扫描模式，越高扫描越快，也越耗电, 仅安卓 7.0.12 及以上支持。
+    interval: 3000, //上报设备的间隔。0 表示找到新设备立即上报，其他数值根据传入的间隔上报。
+    powerLevel: 'high', //扫描模式，越高扫描越快，也越耗电, 仅安卓 7.0.12 及以上支持。
     success: function (res) {
       console.log("startBluetoothDevicesDiscovery success", res);
     },
@@ -122,6 +122,10 @@ const writeBLECharacteristic = (deviceId, value, showToast = false) => {
  */
 const connect = (deviceId) => {
   //log.i('>>> 发起连接 ' + deviceId)
+  if (isConnected(deviceId)) {
+    return;
+  }
+
   wx.createBLEConnection({
     deviceId: deviceId,
     success: function (res) {
@@ -170,12 +174,12 @@ const connect = (deviceId) => {
     },
     fail: function (res) {
       switch (res.errCode) {
-        case -1://已连接，不打印
-        case 10003://连接失败，不打印
+        case -1: //已连接，不打印
           break;
 
+        case 10003: //连接失败，不打印
         default:
-          console.error('连接失败', res)
+          //console.error('连接失败', res)
           break;
       }
     }
@@ -197,7 +201,7 @@ const disconnect = deviceId => {
 }
 
 
-var bluetoothAvailable = false;//状态未变的情况下Android手机会一直回调onBluetoothAdapterStateChange，代码自己记录一下状态
+var bluetoothAvailable = false; //状态未变的情况下Android手机会一直回调onBluetoothAdapterStateChange，代码自己记录一下状态
 
 const isBluetoothAvailable = () => {
   return bluetoothAvailable

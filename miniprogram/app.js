@@ -6,11 +6,16 @@ const dbutil = require('/utils/dbutil.js')
 const util = require('/utils/util.js')
 const log = require('/utils/log.js')
 const bledata = require('/utils/bledata.js')
+const httputil = require('/utils/httputil.js')
 
 //从厂商数据获取的设备类型，加号(+)代表设备处于可配对状态
 const DEVICE_TYPES = [
   '_BA01', '+BA01',
-  '_BA02', '+BA02'
+  '_BA02', '+BA02',
+  '_BA03', '+BA03',
+  '_BA07', '+BA07',
+  '_BA08', '+BA08',
+  '_BA09', '+BA09'
 ]
 
 App({
@@ -79,21 +84,24 @@ App({
 
         if (mfrHead == 'ZXH' && DEVICE_TYPES.indexOf(deviceType, 0) != -1) {
           //成对存储 deviceId 与 MAC
-          sputil.putDeviceIdAndMac(device.deviceId, mac)
+          sputil.putDeviceIdAndMac(device.deviceId, mac);
 
-          const devices = sputil.getDevices()
-          var contains = false
+          const devices = sputil.getDevices();
+          var contains = false;
           if (typeof (devices) == 'object') {
             devices.forEach(element => {
               if (element.mac == mac) {
-                contains = true
+                contains = true;
               }
-            })
+            });
           }
           if (contains) {
             //console.info('扫描到已添加的设备', mac)
             if (!bleproxy.isConnected(device.deviceId)) {
-              bleproxy.connect(device.deviceId)
+              //第一款产品通过扫描连接
+              if (deviceType == '+BA01' || deviceType == '_BA01') {
+                bleproxy.connect(device.deviceId); //2021-8-1
+              }
             }
           } else {
 
@@ -103,9 +111,9 @@ App({
               mac: mac,
               type: deviceType,
               version: version
-            }
-            //console.info('myDevice', myDevice)
-            onfire.fire('onBluetoothDeviceFound_userConsole', myDevice)
+            };
+            //console.info('myDevice', myDevice);
+            onfire.fire('onBluetoothDeviceFound_userConsole', myDevice);
           }
 
         }
@@ -114,21 +122,28 @@ App({
 
     //监听网络状态
     wx.onNetworkStatusChange((result) => {
-      console.log('网络状态变化', result)
-      this.globalData.isNetworkOn = result.isConnected
-    })
+      console.log('网络状态变化', result);
+      this.globalData.isNetworkOn = result.isConnected;
+    });
 
+    wx.getSystemInfo({
+      success: (result) => {
+        this.globalData.platform = result.platform;
+        console.info('app.globalData', this.globalData);
+      },
+    });
   },
 
   onShow: function () {
     var that = this
     //bleproxy.startLeScan(true)
-    that.getOpenid()
-    bleproxy.initBluetooth()
+    that.getOpenid();
+    bleproxy.initBluetooth();
     dbutil.getUser(function (res) {
-      console.log('getUser', res)
-      that.globalData.myuser = res.result
-    })
+      console.log('getUser', res);
+      that.globalData.myuser = res.result;
+      sputil.setPaySuccess(res.result.is_vip);
+    });
     //获取网络状态
     wx.getNetworkType({
       success: (result) => {
@@ -139,7 +154,7 @@ App({
           that.globalData.isNetworkOn = true
         }
       },
-    })
+    });
 
     onfire.fire('onAppHide_index', {
       hidden: false
@@ -165,6 +180,25 @@ App({
       success: res => {
         that.globalData.openid = res.result.openid
         console.log('app.js 获得openid:', that.globalData.openid)
+        httputil.checkUser({
+          openid: res.result.openid,
+          success: (res2) => {
+            console.info('查询是否激活', res2);
+            if (res2.data.code == 0) {
+              if (res2.data.data.length > 0) {
+                if (res2.data.data[0].open_id == res.result.openid) {
+                  console.info('账号已激活');
+                  that.globalData.isActivated = true;
+                }
+              }
+            } else {
+              that.globalData.isActivated = false;
+            }
+          },
+          fail: (err2) => {
+            console.error('查询是否激活', err2);
+          }
+        });
       },
       fail: err => {
         console.error('[云函数] [login] 调用失败', err)
@@ -172,10 +206,34 @@ App({
     })
   },
 
+
+  isUserAvailable() {
+    if (this.isFreeDevice(sputil.getDeviceType())) {
+      return true; //免费类型设备
+    }
+
+    let b = sputil.isPaySuccess();
+    if (b) {
+      return true;
+    }
+    //已经付费或者已经绑定激活码，视为激活用户，使用不受限制
+    if (this.globalData.myuser) {
+      var isVip = this.globalData.myuser.hasOwnProperty('is_vip') && this.globalData.myuser.is_vip;
+      return isVip || this.globalData.isActivated;
+    }
+    return false;
+  },
+
+  //3款免费型号
+  isFreeDevice(deviceType) {
+    return (deviceType == '+BA07' || deviceType == '+BA08' || deviceType == '+BA09')
+  },
+
   globalData: {
     openid: '',
     myuser: {},
     isNetworkOn: true,
-    appHidden: true
+    appHidden: true,
+    isActivated: false //账号是否已通过激活码激活
   }
 })

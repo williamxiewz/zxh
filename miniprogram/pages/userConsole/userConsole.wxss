@@ -87,3 +87,35 @@
   line-height: 60rpx;
   padding: 0rpx 20rpx;
 }
+
+
+.button_save {
+  /*这样设置width会包含border宽度*/
+  box-sizing: border-box;
+  background-color: #2d82e5;
+  border-radius: 30rpx;
+  height: 60rpx;
+  width: 100rpx;
+  line-height: 60rpx;
+  display: inline-block;
+  color: white;
+  padding: 0rpx 0rpx;
+  text-align: center;
+  font-size: 28rpx;
+}
+
+.button_save_gray {
+  background-color: #8a8a8a;
+  border-radius: 30rpx;
+  height: 60rpx;
+  width: 180rpx;
+  line-height: 60rpx;
+  color: white;
+  padding: 0rpx 0rpx;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 28rpx;
+  margin-left: 30rpx;
+  cursor: pointer;
+}

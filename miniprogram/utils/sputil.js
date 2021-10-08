@@ -89,14 +89,56 @@ const getMacByDeviceId = (deviceId) => {
   return wx.getStorageSync(deviceId)
 }
 
+
+const getSelectedDevice = () => {
+  const mac = getDeviceMac()
+  const devices = getDevices()
+  if (typeof (devices) == 'object') {
+    for (var i = 0; i < devices.length; i++) {
+      if (devices[i].mac == mac) {
+        return devices[i]
+      }
+    }
+  }
+  return null
+}
+
+
+const getDeviceType = () => {
+  const device = getSelectedDevice()
+  if (device != null) {
+    return device.type
+  }
+  return ''
+}
+
+//微信支付的回调云函数会比支付云函数的时间晚半分钟甚至更久，本地根据支付云函数的结果暂存一个状态
+const isPaySuccess = () => {
+  let b = wx.getStorageSync('is_pay_success');
+  return b != '' && b;
+}
+
+const setPaySuccess = (b) => {
+  wx.setStorageSync('is_pay_success', b);
+}
+
 const isEncrypt = () => {
   // let v = wx.getStorageSync('is_encrypt')
   // return v != '' && v
-  return true//正式版本启用数据加密
+  return true //正式版本启用数据加密
 }
 
 const setEncrypt = (encrypt) => {
   wx.setStorageSync('is_encrypt', encrypt)
+}
+
+const putPhoneNumber = (phoneNumber) => {
+  console.info('putPhoneNumber() - ' + phoneNumber)
+  wx.setStorageSync('phoneNumber', phoneNumber);
+}
+
+const getPhoneNumber = () => {
+  return wx.getStorageSync('phoneNumber');
 }
 
 module.exports = {
@@ -115,6 +157,12 @@ module.exports = {
   getDeviceIdByMac: getDeviceIdByMac,
   getMacByDeviceId: getMacByDeviceId,
   getDeviceCount: getDeviceCount,
+  getSelectedDevice: getSelectedDevice,
+  getDeviceType: getDeviceType,
   isEncrypt: isEncrypt,
-  setEncrypt: setEncrypt
+  setEncrypt: setEncrypt,
+  putPhoneNumber: putPhoneNumber,
+  getPhoneNumber: getPhoneNumber,
+  isPaySuccess: isPaySuccess,
+  setPaySuccess: setPaySuccess
 }

@@ -54,9 +54,10 @@ exports.main = async (event, context) => {
 
     const result = await db.collection('my_payments').add({
       data: {
-        openid: openid,
         fee: event.totalFee,
-        timestamp: event.timeEnd
+        openid: openid,
+        timestamp: event.timeEnd,
+        transaction_id: event.transactionId
       }
     })
     console.log('保存支付记录', result)

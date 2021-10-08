@@ -35,7 +35,7 @@ exports.main = async (event, context) => {
       break;
 
     case 'addDeviceByQRCode':
-      res = await addDeviceByQRCode(event.qrcode)
+      res = await addDeviceByQRCode(event.qrcode, event.platform)
       break;
 
     case 'addWXUserInfo':
@@ -185,10 +185,10 @@ async function getDevices() {
     //   openid: openid//绑定的设备
     // },
     {
-      openids: _.all([openid])//数组查询操作符。用于数组字段的查询筛选条件，要求数组字段中包含给定数组的所有元素。
+      openids: _.all([openid]) //数组查询操作符。用于数组字段的查询筛选条件，要求数组字段中包含给定数组的所有元素。
     },
     {
-      lend_code: _.in(user.lend_codes)//扫码获得的设备
+      lend_code: _.in(user.lend_codes) //扫码获得的设备
     }
   ])).get()
 
@@ -221,10 +221,10 @@ async function getDevices() {
       //   openid: openid//绑定的设备
       // },
       {
-        openids: _.all([openid])//数组查询操作符。用于数组字段的查询筛选条件，要求数组字段中包含给定数组的所有元素。
+        openids: _.all([openid]) //数组查询操作符。用于数组字段的查询筛选条件，要求数组字段中包含给定数组的所有元素。
       },
       {
-        lend_code: _.in(user.lend_codes)//扫码获得的设备
+        lend_code: _.in(user.lend_codes) //扫码获得的设备
       }
     ])).get()
     console.info('借车码发生变化，更新查询设备', getRes)
@@ -267,14 +267,24 @@ async function bindDevice(myDevice) {
 
     if (addRes.errMsg == 'collection.add:ok') {
       device.deviceId = myDevice.deviceId
-      result = { code: 0, msg: '绑定成功', device: device }
+      result = {
+        code: 0,
+        msg: '绑定成功',
+        device: device
+      }
     } else {
-      result = { code: -1, msg: addRes.errMsg }
+      result = {
+        code: -1,
+        msg: addRes.errMsg
+      }
     }
 
   } else if (getRes.data[0].openids.indexOf(openid, 0) != -1) {
     //当前用户已经绑定该设备
-    result = { code: 1, msg: '已经绑定该设备' }
+    result = {
+      code: 1,
+      msg: '已经绑定该设备'
+    }
   } else {
     //该设备已被其他用户绑定
     //result = { code: 2, msg: '该设备已被其他用户绑定' }
@@ -290,9 +300,16 @@ async function bindDevice(myDevice) {
     console.log('绑定设备 -> 增加openid', updateRes)
     if (updateRes.stats.updated == 1) {
       deviceInfo.deviceId = myDevice.deviceId
-      result = { code: 0, msg: '绑定成功', device: deviceInfo }
+      result = {
+        code: 0,
+        msg: '绑定成功',
+        device: deviceInfo
+      }
     } else {
-      result = { code: 3, msg: updateRes.errMsg }
+      result = {
+        code: 3,
+        msg: updateRes.errMsg
+      }
     }
   }
   return result
@@ -364,7 +381,7 @@ async function delDevice2(myDevice) {
 
 //////////////////////////////////////////////////////////////////////////////
 
-async function addDeviceByQRCode(qrcode) {
+async function addDeviceByQRCode(qrcode, platform) {
   const openid = cloud.getWXContext().OPENID
   //借车码: MAC + 日期 + 随机字符串
   const mac = qrcode.substring(0, 12)
@@ -382,19 +399,41 @@ async function addDeviceByQRCode(qrcode) {
     var device = getRes.data[0]
     if (device.openids.indexOf(openid, 0) != -1) {
       //设备绑定的用户扫码
-      result = { code: -1, msg: '您已绑定该设备' }
-    } else if (device.lend_code == qrcode) {
-      const user = await getUser()
-      if (user.lend_codes.indexOf(qrcode) == -1) {
-        user.lend_codes.push(qrcode)
-        updateUser(user)
+      result = {
+        code: -1,
+        msg: '您已绑定该设备'
       }
-      result = { code: 0, msg: '添加成功', device: device }
+    } else if (device.lend_code == qrcode) {
+      console.log('deviceType=' + device.type + ', platform=' + platform);
+      if (device.type != '+BA01' && 'ios' == platform) {
+        result = {
+          code: 3,
+          msg: '苹果设备暂不支持分享借车',
+          device: device
+        };
+      } else {
+        const user = await getUser()
+        if (user.lend_codes.indexOf(qrcode) == -1) {
+          user.lend_codes.push(qrcode)
+          updateUser(user)
+        }
+        result = {
+          code: 0,
+          msg: '添加成功',
+          device: device
+        }
+      }
     } else {
-      result = { code: 1, msg: '借车码无效' }
+      result = {
+        code: 1,
+        msg: '借车码无效'
+      }
     }
   } else {
-    result = { code: 2, msg: '无法获得该车辆信息' }
+    result = {
+      code: 2,
+      msg: '无法获得该车辆信息'
+    }
   }
 
   return result
@@ -421,14 +460,14 @@ function isNeedReplace(lendCode) {
   if (!match) return true
 
   let date = lendCode.substring(12, 20)
-  return date != getCurrentDate()//日期不同则更换
+  return date != getCurrentDate() //日期不同则更换
 }
 
 function randomString() {
   var id = "";
   for (var i = 0; i < 4; i++) {
-    let v = Math.floor(Math.random() * 256);//[0, 256)随机一个整数
-    id += ('0' + v.toString(16)).slice(-2).toUpperCase();//转化成十六进制
+    let v = Math.floor(Math.random() * 256); //[0, 256)随机一个整数
+    id += ('0' + v.toString(16)).slice(-2).toUpperCase(); //转化成十六进制
   }
   console.log("随机字符串: " + id);
   return id;
