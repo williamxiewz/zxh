@@ -1,6 +1,6 @@
-const util = require("./util");
-const sputil = require("./sputil");
-const log = require("./log");
+const util = require("./util")
+const sputil = require('./sputil')
+const log = require("./log")
 
 const CMD_LOCK = 1 //设防
 const CMD_UNLOCK = 2 //撤防
@@ -23,7 +23,7 @@ const mkData = (cmdCode, sensitivity, limitSpeed, volume, optCode = 0, ganying) 
 
   var value = new Uint8Array(isGanying ? 13 : 12);
 
-  let selfId = util.randomSelfID(); //sputil.getSelfID();
+  let selfId = util.randomSelfID();
   //let devId = deviceId.replace(/:/g, '').replace(/-/g, '');
 
   var selfIdArr = new Uint8Array(util.hex2array(selfId));
@@ -46,15 +46,15 @@ const mkData = (cmdCode, sensitivity, limitSpeed, volume, optCode = 0, ganying) 
 }
 
 const queryState = () => {
-  const type = sputil.getDeviceType();
-  const isBA02 = type == '+BA02';
+  let type = sputil.getDeviceType();
+  let isBA02 = type == '+BA02';
   var value = new Uint8Array(isBA02 ? 13 : 12);
-  let selfId = util.randomSelfID(); //sputil.getSelfID();
+  let selfId = util.randomSelfID();
   var selfIdArr = new Uint8Array(util.hex2array(selfId));
   util.arraycopy(selfIdArr, 0, value, 0, 4); //4个字节的随机数
   //Math.floor(Math.random() * 256)
 
-  log.i('device type=' + type)
+  log.i('device type=' + type);
   if (isBA02) {
     value[6] = 0x02; //设备类型：小程序发送0x02，设备发0x82
     value[12] = 0x00;
@@ -92,6 +92,7 @@ const decryptPayload = (value, complete) => {
     complete: complete
   })
 }
+
 
 module.exports = {
   mkData: mkData,

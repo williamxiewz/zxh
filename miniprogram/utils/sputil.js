@@ -82,7 +82,8 @@ const putDeviceIdAndMac = (deviceId, mac) => {
 }
 
 const getDeviceIdByMac = (mac) => {
-  return wx.getStorageSync(mac)
+  let deviceId = wx.getStorageSync(mac);
+  return deviceId;
 }
 
 const getMacByDeviceId = (deviceId) => {
@@ -91,25 +92,25 @@ const getMacByDeviceId = (deviceId) => {
 
 
 const getSelectedDevice = () => {
-  const mac = getDeviceMac()
-  const devices = getDevices()
+  const mac = getDeviceMac();
+  const devices = getDevices();
   if (typeof (devices) == 'object') {
     for (var i = 0; i < devices.length; i++) {
       if (devices[i].mac == mac) {
-        return devices[i]
+        return devices[i];
       }
     }
   }
-  return null
+  return null;
 }
 
 
 const getDeviceType = () => {
-  const device = getSelectedDevice()
+  const device = getSelectedDevice();
   if (device != null) {
-    return device.type
+    return device.type;
   }
-  return ''
+  return '';
 }
 
 //微信支付的回调云函数会比支付云函数的时间晚半分钟甚至更久，本地根据支付云函数的结果暂存一个状态

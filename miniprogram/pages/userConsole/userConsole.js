@@ -765,7 +765,6 @@ Page({
   onShow: function () {
     //云数据库获取用户的设备
     console.info('userConsole.js onShow()');
-
     this.getDevicesFromCloud();
   },
 

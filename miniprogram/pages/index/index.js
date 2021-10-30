@@ -63,25 +63,96 @@ Page({
       return
     }
 
+    var that = this;
     wx.scanCode({
       onlyFromCamera: false,
       scanType: ['qrCode'],
       success: res => {
-        console.info('扫码结果', res.result)
-        let text = util.arrayBufferToString(wx.base64ToArrayBuffer(res.result))
-        console.info('借车码', text)
+        console.info('扫码结果', res.result);
+        let text = util.arrayBufferToString(wx.base64ToArrayBuffer(res.result));
+        console.info('借车码', text);
 
         dbutil.addDeviceByQRCode(text, app.globalData.platform, function (res2) {
           console.log('扫码添加设备', res2)
           viewutil.toast(res2.result.msg)
           if (res2.result.code == 0) {
-            onfire.fire('userConsole_update_devices', res2.result.device)
+            //onfire.fire('userConsole_update_devices', res2.result.device);
+            that.getDevicesFromCloud();
           }
-        })
+        });
       }
-    })
+    });
   },
 
+  getDevicesFromCloud() {
+    dbutil.getDevices(res => {
+      console.info('index.js 云端设备：', res);
+      var devices = [{
+          type: '',
+          deviceId: '',
+          mac: '',
+          name: '+',
+          version: '',
+          connected: false
+        },
+        {
+          type: '',
+          deviceId: '',
+          mac: '',
+          name: '+',
+          version: '',
+          connected: false
+        },
+        {
+          type: '',
+          deviceId: '',
+          mac: '',
+          name: '+',
+          version: '',
+          connected: false
+        }
+      ]
+
+      for (var i = 0; i < devices.length; i++) {
+        if (i < res.result.length) {
+          let deviceId = sputil.getDeviceIdByMac(res.result[i].mac)
+          devices[i] = res.result[i]
+          devices[i].deviceId = deviceId
+          devices[i].connected = bleproxy.isConnected(deviceId)
+        }
+      }
+
+      ///
+      var mac = ''
+      var deviceId = ''
+      devices.forEach(element => {
+        console.log(element)
+        let tempMac = element.mac
+        let tempDeviceId = sputil.getDeviceIdByMac(tempMac)
+        element.connected = bleproxy.isConnected(tempDeviceId)
+        if (tempMac != '' && tempMac == sputil.getDeviceMac()) {
+          mac = tempMac
+          deviceId = tempDeviceId
+        }
+      })
+
+      //默认选中第一个
+      if (mac == '' || deviceId == '') {
+        if (devices[0].mac != '') {
+          mac = devices[0].mac;
+          deviceId = devices[0].deviceId;
+          if (!deviceId) {
+            deviceId = util.mac2DeviceId(mac); //仅限android系统
+          }
+        }
+      }
+      sputil.putDeviceMac(mac);
+      sputil.putDeviceId(deviceId);
+      sputil.putDevices(devices);
+      /////
+    });
+    //////
+  },
 
   //开启定时器读取RSSI，发送心跳包
   startTimer: function () {
@@ -119,7 +190,7 @@ Page({
       if ((count % 2) == 0) {
         //每30秒查询一次状态作为心跳包
         //console.info('######### 计数器 ' + count)
-        bleproxy.sendToConnectedDevices(bledata.queryState())
+        bleproxy.sendToConnectedDevices(bledata.queryState());
       }
 
       //todo 2021-7-29 带感应功能【HID配对】的产品，配对后没广播，通过 deviceId 去连接
@@ -127,8 +198,15 @@ Page({
       console.log('typeof(sputil.getDevices())=' + typeof (devices));
       if (typeof (devices) == 'object') {
         devices.forEach(element => {
-          if (element.type != '+BA01') {
-            bleproxy.connect(element.deviceId);
+          if (element.type != '+BA01' && element.mac) {
+            console.log('定时器通过 deviceId 连接', element);
+            if (element.deviceId) {
+              bleproxy.connect(element.deviceId);
+            } else {
+              let macstd = util.mac2DeviceId(element.mac);
+              sputil.putDeviceIdAndMac(macstd, element.mac);
+              bleproxy.connect(macstd);
+            }
           }
         });
       }

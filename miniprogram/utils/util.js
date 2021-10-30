@@ -1,3 +1,6 @@
+
+const HEX = '0123456789ABCDEF'
+
 const formatTime = date => {
   const year = date.getFullYear()
   const month = date.getMonth() + 1
@@ -147,6 +150,27 @@ const getCurrentDate = () => {
   return s
 }
 
+const uint8ToHex = (byte) => {
+  return HEX[(byte >> 4) & 0xf] + HEX[byte & 0xf];
+}
+//mac是广播中的，与实际MAC字节序相反，本方法主要用于分享给Android系统的设备连接
+const mac2DeviceId = (mac) => {
+  if (mac.match(/[0-9A-Fa-f]{12}/)) {
+    let arr = new Uint8Array(hex2array(mac));
+    let macstd = '';
+    for (let i = arr.byteLength - 1; i >= 0; i--) {
+      macstd += uint8ToHex(arr[i]);
+      if (i > 0) {
+        macstd += ':';
+      }
+    }
+    console.log(`mac2DeviceId() - ${mac} -> ${macstd}`);
+    return macstd;
+  } else {
+    console.error(`输入的mac格式有误 [${mac}]`);
+    return '';
+  }
+}
 
 module.exports = {
   formatTime: formatTime,
@@ -156,5 +180,6 @@ module.exports = {
   stringToArrayBuffer: stringToArrayBuffer,
   randomSelfID: randomSelfID,
   arraycopy: arraycopy,
-  getCurrentDate: getCurrentDate
+  getCurrentDate: getCurrentDate,
+  mac2DeviceId: mac2DeviceId
 }
