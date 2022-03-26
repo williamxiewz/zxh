@@ -9,14 +9,16 @@ const bledata = require('/utils/bledata.js')
 const httputil = require('/utils/httputil.js')
 
 //从厂商数据获取的设备类型，加号(+)代表设备处于可配对状态
-const DEVICE_TYPES = [
-  '_BA01', '+BA01',
-  '_BA02', '+BA02',
-  '_BA03', '+BA03',
-  '_BA07', '+BA07',
-  '_BA08', '+BA08',
-  '_BA09', '+BA09'
-]
+// const DEVICE_TYPES = [
+//   '_BA01', '+BA01',
+//   '_BA02', '+BA02',
+//   '_BA03', '+BA03',
+//   '_BA07', '+BA07',
+//   '_BA08', '+BA08',
+//   '_BA09', '+BA09'
+// ]
+//正则表达式匹配设备类型
+const TYPE_PATTERN = /^[_+]BA[\d]{2}$/;
 
 App({
   onLaunch: function () {
@@ -82,7 +84,7 @@ App({
 
         //console.info('### BLE Manufacturer Data:', mfrHead + ' ' + mac + ' ' + deviceType + version)
 
-        if (mfrHead == 'ZXH' && DEVICE_TYPES.indexOf(deviceType, 0) != -1) {
+        if (mfrHead == 'ZXH' && TYPE_PATTERN.test(deviceType)) {
           //成对存储 deviceId 与 MAC
           sputil.putDeviceIdAndMac(device.deviceId, mac);
 
@@ -224,9 +226,10 @@ App({
     return false;
   },
 
-  //3款免费型号
+  //免费型号
   isFreeDevice(deviceType) {
-    return (deviceType == '+BA07' || deviceType == '+BA08' || deviceType == '+BA09')
+    const num = parseInt(deviceType.substring(3, 5));
+    return num >= 7;
   },
 
   globalData: {

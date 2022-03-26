@@ -4,13 +4,11 @@
   <!-- <view style="background:#14517E;width:100%;height:44rpx;"></view> -->
   <!-- 标题栏 -->
   <view class="container-h" style="background:#14517E;width:100%;height:96rpx;align-items:center;">
-    <image src="{{bluetoothAvailable? '../../images/ic_bluetooth_blue.png':'../../images/ic_bluetooth_red.png'}}"
-      style="height:40rpx;margin-left:20rpx;" mode="heightFix"></image>
+    <image src="{{bluetoothAvailable? '../../images/ic_bluetooth_blue.png':'../../images/ic_bluetooth_red.png'}}" style="height:40rpx;margin-left:20rpx;" mode="heightFix"></image>
     <view style="flex:1.3;"></view>
     <text style="color:white;">{{logo}}</text>
     <view style="flex:1;"></view>
-    <image src="../../images/ic_scancode.png" style="height:50rpx;margin-right:20rpx;" mode="heightFix"
-      bindtap="scanCode"></image>
+    <image src="../../images/ic_scancode.png" style="height:50rpx;margin-right:20rpx;" mode="heightFix" bindtap="scanCode"></image>
     <image src="{{RSSI_Image}}" style="height:30rpx;margin-right:20rpx;" mode="heightFix"></image>
   </view>
   <!-- <view style="width:100%;height:{{topSpace}}rpx;"></view> -->
@@ -20,13 +18,10 @@
     </view>
     <view class="container-v" style="width:100%;margin-top:150rpx;align-items: center;">
       <!-- 63*68 -->
-      <image src="{{imageOfState}}" style="display:{{isStart? 'none':'block'}};position:absolute;height:84rpx;"
-        mode="heightFix"></image>
-      <image src="../../images/ic_start_red.png"
-        style="display:{{isStart? 'block':'none'}};position:absolute;width:144rpx;margin-top:25rpx" mode="widthFix">
+      <image src="{{imageOfState}}" style="display:{{isStart? 'none':'block'}};position:absolute;width:141rpx;height:71rpx;"></image>
+      <image src="../../images/ic_start_red.png" style="display:{{isStart? 'block':'none'}};position:absolute;width:141rpx;height:71rpx;margin-top:25rpx">
       </image>
-      <image src="{{imageOfMoto}}" style="position:absolute;width:55%;margin-top:190rpx;margin-left:20px;"
-        mode="widthFix" bindtap="test">
+      <image src="{{imageOfMoto}}" style="position:absolute;width:55%;margin-top:190rpx;margin-left:20px;" mode="widthFix" bindtap="test">
       </image>
     </view>
   </view>
@@ -46,30 +41,24 @@
         <image src="../../images/btn_rb_disabled.png" style="width:50%;" mode="widthFix"></image>
       </view>
     </view>
-    <image src="../../images/btn_start_disabled.png" style="width:{{startButtonWidth}}%;position:absolute;"
-      mode="widthFix"></image>
+    <image src="../../images/btn_start_disabled.png" style="width:{{startButtonWidth}}%;position:absolute;" mode="widthFix"></image>
   </view>
 
   <!-- 连接设备时的五个功能按键 -->
   <view class="container-r" style="margin-top:{{bottomLayoutMatginTop}}rpx;display:{{connected? 'flex':'none'}};">
     <view class="container-v" style="width:{{bottomLayoutWidth}}%;position:absolute;padding:0px 6px;">
       <view class="container-h">
-        <image src="{{imageOfLtBtn}}" style="width:50%;" mode="widthFix" bindtouchstart="onTouchStart"
-          bindtouchend="onTouchEnd" data-btnindex="1"></image>
+        <image src="{{imageOfLtBtn}}" style="width:50%;" mode="widthFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="1"></image>
         <view style="width:6px;"></view>
-        <image src="{{imageOfRtBtn}}" style="width:50%;" mode="widthFix" bindtouchstart="onTouchStart"
-          bindtouchend="onTouchEnd" data-btnindex="2"></image>
+        <image src="{{imageOfRtBtn}}" style="width:50%;" mode="widthFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="2"></image>
       </view>
       <view class="container-h" style="margin-top:3px;">
-        <image src="{{imageOfLbBtn}}" style="width:50%;" mode="widthFix" bindtouchstart="onTouchStart"
-          bindtouchend="onTouchEnd" data-btnindex="3"></image>
+        <image src="{{imageOfLbBtn}}" style="width:50%;" mode="widthFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3"></image>
         <view style="width:6px;"></view>
-        <image src="{{imageOfRbBtn}}" style="width:50%;" mode="widthFix" bindtouchstart="onTouchStart"
-          bindtouchend="onTouchEnd" data-btnindex="4"></image>
+        <image src="{{imageOfRbBtn}}" style="width:50%;" mode="widthFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="4"></image>
       </view>
     </view>
-    <image src='{{imageOfStartBtn}}' style="width:{{startButtonWidth}}%;position:absolute;" mode="widthFix"
-      bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="0"></image>
+    <image src='{{imageOfStartBtn}}' style="width:{{startButtonWidth}}%;position:absolute;" mode="widthFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="0"></image>
   </view>
 
 </view>

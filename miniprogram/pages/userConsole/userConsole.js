@@ -1061,7 +1061,9 @@ Page({
 
   //根据设备类型判断是否支持“后台感应功能”
   isGanyingAvailable(deviceType) {
-    return deviceType == '+BA02' || deviceType == '+BA03' || deviceType == '+BA08' || deviceType == '+BA09'
+    const num = parseInt(deviceType.substring(3, 5));
+    return num == 2 || num == 3 || num >= 8;
+    //return deviceType == '+BA02' || deviceType == '+BA03' || deviceType == '+BA08' || deviceType == '+BA09'
   },
 
   onLogoInput: function (e) {
