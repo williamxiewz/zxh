@@ -33,7 +33,9 @@ const mkData = (cmdCode, sensitivity, limitSpeed, volume, optCode = 0, ganying) 
   value[6] = isGanying ? 0x02 : 0x01; //设备类型：小程序发送0x01，设备发0x81
   value[7] = optCode;
   value[8] = sensitivity; //灵敏度等级
-  value[9] = limitSpeed ? 1 : 2; //限速开关(1/2)
+  if(optCode == 2) {
+    value[9] = limitSpeed ? 1 : 2; //限速开关(1/2)
+  }
   value[10] = volume; //限速提示音量
   value[11] = cmdCode; //功能码
   if (isGanying) {

@@ -829,8 +829,9 @@ Page({
     }, 1500);
 
     setTimeout(function () {
-      //打开感应，5代表感应功能，2/3/4默认中档距离【这一步其实有点鸡肋】
-      let data2 = bledata.mkData(0, 0, 0, 0, 5, 3);
+      //打开感应，5代表感应功能，2/3/4默认中档距离
+      let v = that.data.ganyingChecked ? that.data.ganyingValue : 3;
+      let data2 = bledata.mkData(0, 0, true, 0, 5, v);
       bleproxy.send(deviceId, data2, false);
     }, 1600);
   },
