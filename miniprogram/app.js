@@ -85,6 +85,8 @@ App({
         //console.info('### BLE Manufacturer Data:', mfrHead + ' ' + mac + ' ' + deviceType + version)
 
         if (mfrHead == 'ZXH' && TYPE_PATTERN.test(deviceType)) {
+          let num = parseInt(deviceType.substring(3, 5));
+          if(num >=4 && num <= 6) continue;
           //成对存储 deviceId 与 MAC
           sputil.putDeviceIdAndMac(device.deviceId, mac);
 

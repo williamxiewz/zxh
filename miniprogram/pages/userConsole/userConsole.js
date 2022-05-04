@@ -476,7 +476,7 @@ Page({
 
     // 监听设备的连接状态
     onfire.on('onBLEConnectionStateChange_userConsole', function (res) {
-      let devices = that.data.devices
+      let devices = that.data.devices;
 
       for (var i = 0; i < devices.length; i++) {
         let itemMac = devices[i].mac
@@ -501,7 +501,7 @@ Page({
       that.setData({
         devices: devices
       });
-    })
+    });
 
     //监听模块端发来的数据
     onfire.on('onBLECharacteristicValueChange_userConsole', function (res) {
@@ -553,6 +553,34 @@ Page({
     });
   },
 
+  isByte7Valid: function (byte7) {
+    switch (byte7) {
+      case 0x82:
+      case 0x83:
+      case 0x88:
+      case 0x89:
+      case 0x8A:
+      case 0x8B://目前没有0x8B~0x8F
+      case 0x8C:
+      case 0x8D:
+      case 0x8E:
+      case 0x8F:
+        return true;
+      default:
+        return false;
+    }
+  },
+
+  isByte7ValidWithGanying: function (byte7) {
+    switch (byte7) {
+      case 0x88:
+      case 0x89:
+      case 0x8A:
+        return true;
+      default:
+        return false;
+    }
+  },
 
   //处理接收到的数据
   handleRxData: function (buffer, deviceId) {
@@ -571,10 +599,18 @@ Page({
     console.info('isSharedDevice=' + that.isSharedDevice() + ', isUserAvailable=' + app.isUserAvailable());
     var deviceState = '';
     if (value.length >= 12) {
-      if (value[6] == 0x82 || value[6] == 0x83 || value[6] == 0x88 || value[6] == 0x89) {
-        if (!that.isSharedDevice() && (app.isUserAvailable() || value[6] == 0x88 || value[6] == 0x89)) {
+      if (that.isByte7Valid(value[6])) {
+        //激活用户绑定的设备，才处理感应功能的数据
+        if (!that.isSharedDevice() && app.isUserAvailable() && that.isByte7ValidWithGanying(value[6])) {
           console.info('value[12]=' + value[12]);
-          //激活用户绑定的设备，才处理感应功能的数据
+          //配对成功发送开感应的指令
+          if (sputil.isSendEnableGanyingCmd(deviceId)) {
+            sputil.setSendEnableGanyingCmd(deviceId, false); //重置该标志
+            //感应距离为1表示感应关闭
+            let ganyingValue = value[12] == 1 ? 3 : value[12];
+            that.sendEnanbleGanyingCmd(deviceId, ganyingValue);
+          }
+          
           switch (value[12]) {
             case 1:
               that.setData({
@@ -810,10 +846,22 @@ Page({
   requestHID: function (deviceId) {
     var that = this;
     //发指令让设备端开启HID配对，允许手机发起配对
+    //每250ms发一次，共发5次
     let data = bledata.mkData(0xff, 0, 0, 0, 0, 0);
     bleproxy.send(deviceId, data, false);
+    /*var count = 0;
+    var timerId = setInterval(function(){
+      console.log('count=' + count);
+      bleproxy.send(deviceId, data, false);
+      count++;
+      if(count == 5) {
+        clearInterval(timerId);
+      }
+    }, 250);*/
 
     setTimeout(function () {
+      //设置一下标志，在收到上报的状态数据后再发送开感应的指令
+      sputil.setSendEnableGanyingCmd(deviceId, true);
       if (app.globalData.platform == 'android') {
         console.info('android透传绑定成功，发起HID配对');
         //发起蓝牙HID配对，仅针对Android手机
@@ -827,13 +875,13 @@ Page({
         bleproxy.disconnect(deviceId);
       }
     }, 1500);
+  },
 
-    setTimeout(function () {
-      //打开感应，5代表感应功能，2/3/4默认中档距离
-      let v = that.data.ganyingChecked ? that.data.ganyingValue : 3;
-      let data2 = bledata.mkData(0, 0, true, 0, 5, v);
-      bleproxy.send(deviceId, data2, false);
-    }, 1600);
+  sendEnanbleGanyingCmd: function (deviceId, v) {
+    console.log('打开感应');
+    //打开感应，5代表感应功能，2/3/4默认中档距离
+    let data = bledata.mkData(0, 0, true, 0, 5, v);
+    bleproxy.send(deviceId, data, false);
   },
 
   //感应开关变化

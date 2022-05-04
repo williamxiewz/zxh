@@ -133,6 +133,15 @@ const setEncrypt = (encrypt) => {
   wx.setStorageSync('is_encrypt', encrypt)
 }
 
+const isSendEnableGanyingCmd = (deviceId) => {
+  let v = wx.getStorageSync('is_send_ganying_' + deviceId);
+  return v != '' && v;
+}
+
+const setSendEnableGanyingCmd = (deviceId, isSend) => {
+  wx.setStorageSync('is_send_ganying_' + deviceId, isSend);
+}
+
 const putPhoneNumber = (phoneNumber) => {
   console.info('putPhoneNumber() - ' + phoneNumber)
   wx.setStorageSync('phoneNumber', phoneNumber);
@@ -165,5 +174,7 @@ module.exports = {
   putPhoneNumber: putPhoneNumber,
   getPhoneNumber: getPhoneNumber,
   isPaySuccess: isPaySuccess,
-  setPaySuccess: setPaySuccess
+  setPaySuccess: setPaySuccess,
+  isSendEnableGanyingCmd: isSendEnableGanyingCmd,
+  setSendEnableGanyingCmd: setSendEnableGanyingCmd
 }
