@@ -271,9 +271,12 @@ Page({
       }
     } else {
       //未激活的用户，配对成功后显示“激活”按钮
-      that.setData({
-        showJiHuoButton: true
-      });
+      const myuser = app.globalData.myuser;
+      if(myuser.use_times > 20) {
+        that.setData({
+          showJiHuoButton: true
+        });
+      }
     }
   },
 
@@ -806,7 +809,11 @@ Page({
 
   //判断是否要显示“激活”按钮
   isShowJiHuoButton: function () {
-    return !(app.isUserAvailable()) && sputil.getDeviceCount() > 0;
+    const myuser = app.globalData.myuser;
+    if(myuser.use_times > 20) {
+      return !(app.isUserAvailable()) && sputil.getDeviceCount() > 0;
+    }
+    return false;
   },
 
 

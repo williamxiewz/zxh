@@ -230,6 +230,7 @@ App({
 
   //免费型号
   isFreeDevice(deviceType) {
+    if(deviceType == '') return true;
     const num = parseInt(deviceType.substring(3, 5));
     return num >= 7;
   },
