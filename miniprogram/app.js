@@ -143,6 +143,7 @@ App({
     //bleproxy.startLeScan(true)
     that.getOpenid();
     bleproxy.initBluetooth();
+    this.checkBluetoothPermission();
     dbutil.getUser(function (res) {
       console.log('getUser', res);
       that.globalData.myuser = res.result;
@@ -163,7 +164,45 @@ App({
     onfire.fire('onAppHide_index', {
       hidden: false
     })
-    this.globalData.appHidden = false
+    this.globalData.appHidden = false;
+  },
+
+  checkBluetoothPermission() {
+    /*逻辑大概是：通过 wx.getSetting 获取 scope.bluetooth 是否为 true
+      如果 wx.getSetting 里没有 scope.bluetooth ，则要用 wx.authorize({ scope: "scope.bluetooth" }) 去弹窗要求用户授权
+      如果 wx.getSetting 里有 scope.bluetooth 并且为 false，则要用 wx.openSetting 引导用户手动开启授权开关。*/
+    wx.getSetting({
+      withSubscriptions: true,
+      success(res) {
+        console.log('系统设置', res.authSetting);
+        if (!res.authSetting || !res.authSetting.hasOwnProperty('scope.bluetooth')) {
+          //弹窗提示
+          wx.authorize({
+            scope: "scope.bluetooth",
+            success() {
+              bleproxy.initBluetooth();
+            }
+          });
+        } else if (res.authSetting['scope.bluetooth']) {
+          console.info('用户已经允许使用蓝牙');
+          bleproxy.initBluetooth();
+        } else {
+          console.error('用户不允许使用蓝牙');
+          wx.showModal({
+            content: '连接设备需要使用蓝牙',
+            confirmText: '去授权',
+            success(res2) {
+              if (res2.confirm) {
+                //用户点击了“去授权”
+                wx.openSetting({
+                  withSubscriptions: true,
+                });
+              }
+            }
+          });
+        }
+      }
+    });
   },
 
   onHide: function () {

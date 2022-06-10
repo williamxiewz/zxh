@@ -114,7 +114,7 @@
       <!-- 版本信息 -->
       <view class="list-item">
         <text class="request-text" style="flex:1;">版本信息</text>
-        <text class="request-text">V1.0.11</text>
+        <text class="request-text">V1.0.12</text>
       </view>
       <!-- test -->
       <!-- <view class="list-item" bindtap="test">
