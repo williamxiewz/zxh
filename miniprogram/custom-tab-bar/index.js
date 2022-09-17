@@ -7,12 +7,12 @@ Component({
       pagePath: "/pages/index/index",
       iconPath: "/images/tab_ctrl.png",
       selectedIconPath: "/images/tab_ctrl.png",
-      text: "控制"
+      text: ""
     }, {
       pagePath: "/pages/userConsole/userConsole",
       iconPath: "/images/tab_settings.png",
       selectedIconPath: "/images/tab_settings.png",
-      text: "设置"
+      text: ""
     }]
   },
   attached() {

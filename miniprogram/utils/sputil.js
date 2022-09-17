@@ -7,7 +7,7 @@ const putLogo = (logo) => {
 const getLogo = () => {
   //默认：众鑫汇智控
   var logo = wx.getStorageSync('settings_logo')
-  if (logo == '') return '众鑫汇智控'
+  if (logo == '') return '踏浪智控'
   return logo
 }
 

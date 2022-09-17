@@ -1,6 +1,7 @@
 const util = require("./util")
 const sputil = require('./sputil')
 const log = require("./log")
+const dbutil = require("./dbutil")
 
 const CMD_LOCK = 1 //设防
 const CMD_UNLOCK = 2 //撤防
@@ -73,7 +74,7 @@ const queryState = () => {
 
 //value 是 ArrayBuffer 类型
 const encryptPayload = (value, complete) => {
-  wx.cloud.callFunction({
+  dbutil.getCloud().callFunction({
     name: 'echo',
     data: {
       action: 'encrypt',
@@ -85,7 +86,7 @@ const encryptPayload = (value, complete) => {
 
 //value 是 ArrayBuffer 类型
 const decryptPayload = (value, complete) => {
-  wx.cloud.callFunction({
+  dbutil.getCloud().callFunction({
     name: 'echo',
     data: {
       action: 'decrypt',

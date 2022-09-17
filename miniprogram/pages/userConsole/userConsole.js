@@ -10,7 +10,6 @@ const viewutil = require('../../utils/viewutil.js')
 const httputil = require('../../utils/httputil.js')
 const log = require('../../utils/log.js')
 const onfire = require('../../utils/onfire.js')
-const gattattrs = require('../../utils/GattAttributes.js')
 import drawQrcode from '../../qrcode/weapp.qrcode.esm.js'
 
 const DEVICE_STATES = [
@@ -124,6 +123,10 @@ Page({
     }
   },
 
+  testPay(e) {
+    this.pay();
+  },
+
   getPhoneNumber(e) {
     console.log('getPhoneNumber', e)
     var that = this;
@@ -132,7 +135,7 @@ Page({
       console.error('getPhoneNumber() - cloudIDType=' + cloudIDType)
       return;
     }
-    wx.cloud.callFunction({
+    dbutil.cloud.callFunction({
       name: 'openapi',
       data: {
         action: 'getOpenData',
@@ -256,7 +259,7 @@ Page({
       bleState: '已连接',
       devices: devices,
       deviceId: myDevice.deviceId,
-      ganyingAvailable: that.isGanyingAvailable(myDevice.type)
+      ganyingAvailable: that.isGanyingAvailable(myDevice)
     });
 
     sputil.putDeviceMac(myDevice.mac);
@@ -266,8 +269,8 @@ Page({
     //绑定成功后
     if (app.isUserAvailable()) {
       //发起HID配对
-      if (that.isGanyingAvailable(myDevice.type)) {
-        that.requestHID(myDevice.deviceId);
+      if (that.isGanyingAvailable(myDevice)) {
+        that.requestHID(myDevice);
       }
     } else {
       //未激活的用户，配对成功后显示“激活”按钮
@@ -495,7 +498,7 @@ Page({
             that.setData({
               mac: itemMac,
               deviceId: itemDeviceId,
-              ganyingAvailable: that.isGanyingAvailable(devices[i].type)
+              ganyingAvailable: that.isGanyingAvailable(devices[i])
             });
           }
           break;
@@ -534,7 +537,7 @@ Page({
       if (!that.isDeviceAdded(myDevice.mac) &&
         myDevice.type.indexOf("+") != -1 && that.data.myDevice == null) {
 
-        const ganyingAvailable = that.isGanyingAvailable(myDevice.type);
+        const ganyingAvailable = that.isGanyingAvailable(myDevice);
         //匹配模式下的设备
         that.setData({
           myDevice: myDevice,
@@ -729,7 +732,7 @@ Page({
         if (tempMac != '' && tempMac == sputil.getDeviceMac()) {
           mac = tempMac
           deviceId = tempDeviceId
-          ganyingAvailable = that.isGanyingAvailable(element.type)
+          ganyingAvailable = that.isGanyingAvailable(element)
         }
       })
 
@@ -738,7 +741,7 @@ Page({
         if (devices[0].mac != '') {
           mac = devices[0].mac;
           deviceId = devices[0].deviceId;
-          ganyingAvailable = that.isGanyingAvailable(devices[0].type);
+          ganyingAvailable = that.isGanyingAvailable(devices[0]);
         }
       }
       sputil.putDeviceMac(mac)
@@ -850,7 +853,8 @@ Page({
   },
 
   //发起HID配对
-  requestHID: function (deviceId) {
+  requestHID: function (myDevice) {
+    const deviceId = myDevice.deviceId;
     var that = this;
     //发指令让设备端开启HID配对，允许手机发起配对
     //每250ms发一次，共发5次
@@ -869,6 +873,7 @@ Page({
     setTimeout(function () {
       //设置一下标志，在收到上报的状态数据后再发送开感应的指令
       sputil.setSendEnableGanyingCmd(deviceId, true);
+      //const deviceNo = parseInt(myDevice.type.substring(3, 5), 16);
       if (app.globalData.platform == 'android') {
         console.info('android透传绑定成功，发起HID配对');
         //发起蓝牙HID配对，仅针对Android手机
@@ -991,7 +996,7 @@ Page({
                 console.log('云端删除设备', res2);
                 if (res2.result.stats.removed > 0 || res2.result.stats.updated > 0) {
                   that.doDelete(item);
-                  if (that.isGanyingAvailable(item.type)) {
+                  if (that.isGanyingAvailable(item)) {
                     that.tipAfterDelete(item.type);
                   }
                 }
@@ -1092,7 +1097,7 @@ Page({
               that.setData({
                 mac: item.mac,
                 deviceId: item.deviceId,
-                ganyingAvailable: that.isGanyingAvailable(item.type)
+                ganyingAvailable: that.isGanyingAvailable(item)
               });
               //设置感应开关状态，分享来的设备不勾选
               if (that.data.isGanyingAvailable && !that.isSharedDevice()) {
@@ -1116,9 +1121,10 @@ Page({
   },
 
   //根据设备类型判断是否支持“后台感应功能”
-  isGanyingAvailable(deviceType) {
-    const num = parseInt(deviceType.substring(3, 5));
-    return num == 2 || num == 3 || num >= 8;
+  isGanyingAvailable(device) {
+    let num = parseInt(device.type.substring(3, 5), 16);
+    if(num > 0xA0) num -= 0xA0;
+    return num == 2 || num == 3 || num == 4 || num >= 8;
     //return deviceType == '+BA02' || deviceType == '+BA03' || deviceType == '+BA08' || deviceType == '+BA09'
   },
 
@@ -1174,30 +1180,25 @@ Page({
   pay: function () {
     var that = this;
     //调用微信支付云接口
-    wx.cloud.callFunction({
-      name: 'wechatpay',
-      data: {
-        totalFee: 1800 //金额(单位：分)
-      },
-      success: res => {
-        const payment = res.result.payment
-        wx.requestPayment({
-          ...payment,
-          success(res) {
-            console.log('支付成功', res);
-            app.globalData.myuser.is_vip = true;
-            sputil.setPaySuccess(true);
-            that.setData({
-              showJiHuoButton: false
-            });
-          },
-          fail(res) {
-            console.log('支付失败', res);
-          }
-        })
-      },
-      fail: console.error,
-    })
+    dbutil.pay((res) => {
+      const payment = res.result.payment;
+      //payment.appId = 'wxf707393f43bdaa51';
+      console.log('##### payment =', payment);
+      wx.requestPayment({
+        ...payment,
+        success(res) {
+          console.log('支付成功', res);
+          app.globalData.myuser.is_vip = true;
+          sputil.setPaySuccess(true);
+          that.setData({
+            showJiHuoButton: false
+          });
+        },
+        fail(res) {
+          console.log('支付失败', res);
+        }
+      });
+    });
   },
 
   //部分功能需要限制免费用户的使用次数，该方法检测用户是否可以使用
@@ -1239,7 +1240,7 @@ Page({
   },
 
   test: function () {
-    console.log('测试XXX')
+    console.log('测试XXX');
   },
 
 })

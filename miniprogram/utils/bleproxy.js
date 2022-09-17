@@ -241,6 +241,7 @@ const initBluetooth = () => {
       //////////////////////////////////////
       const platform = result.platform
       const locationEnabled = result.locationEnabled
+      const locationAuthorized = result.locationAuthorized
       wx.openBluetoothAdapter({
         mode: 'central',
         success: (res) => {
@@ -255,7 +256,16 @@ const initBluetooth = () => {
               if (result.available) {
                 //蓝牙可用，开启扫描
                 if (locationEnabled) {
-                  startLeScan(true)
+                  if(locationAuthorized) {
+                    startLeScan(true)
+                  } else {
+                    wx.showModal({
+                      title: '提示',
+                      content: '扫描蓝牙设备需要微信获得定位权限，建议您在系统设置里允许微信使用位置信息后重新进入小程序',
+                      confirmText: '好的',
+                      showCancel: false
+                    })
+                  }
                 } else {
                   wx.showModal({
                     title: '提示',
@@ -264,7 +274,6 @@ const initBluetooth = () => {
                     showCancel: false
                   })
                 }
-
               } else {
                 showModal()
               }

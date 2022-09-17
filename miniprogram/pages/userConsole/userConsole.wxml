@@ -24,10 +24,6 @@
     </view>
 
     <view class="list">
-      <!-- <view class="container-h" style="align-items:center;justify-content:center;" bindtap="scanDevice">
-        <text class="request-text">搜索设备</text>
-        <icon type="search" size="32" />
-      </view> -->
       <view class="list-item">
         <text class="request-text">我的设备</text>
       </view>
@@ -103,34 +99,14 @@
           </view>
         </view>
       </view>
-
-      <!-- 品牌LOGO设置 -->
-      <view class="list-item" bindtap="setLogo">
-        <view class="container-v">
-          <text class="request-text">品牌Logo设置</text>
-          <text style="font-size: 28rpx;line-height: 36rpx;">点击设置品牌Logo</text>
-        </view>
-      </view>
       <!-- 版本信息 -->
       <view class="list-item">
         <text class="request-text" style="flex:1;">版本信息</text>
-        <text class="request-text">V1.0.12</text>
+        <text class="request-text">V1.0.0</text>
       </view>
-      <!-- test -->
-      <!-- <view class="list-item" bindtap="test">
-        <text class="request-text" style="flex:1;">测试XXX</text>
-      </view> -->
-      <!-- 测试加密算法 -->
-      <!-- <view class="list-item" style="align-items:center;">
-        <view class="container-v">
-          <text class="request-text">设置加密</text>
-          <text style="font-size: 28rpx;line-height: 36rpx;">选择后交互数据会被加密</text>
-        </view>
-        <view style="flex:1;"></view>
-        <switch type="checkbox" bindchange="onEncryptChange" checked="{{isEncrypt}}"></switch>
-      </view> -->
-
     </view>
+    <!-- <button bindtap="testPay">测试支付</button> -->
+    <!-- <button bindtap="test">测试</button> -->
   </scroll-view>
 
 </view>

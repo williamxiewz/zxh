@@ -10,16 +10,16 @@ const onfire = require('../../utils/onfire.js')
 const dbutil = require('../../utils/dbutil.js')
 
 const IMAGE_ARRAY = [
-  '../../images/btn_start_normal.png',
-  '../../images/btn_lt_normal.png',
-  '../../images/btn_rt_normal.png',
-  '../../images/btn_lb_normal.png',
+  '../../images/btn_start.png',
+  '../../images/btn_lock.png',
+  '../../images/btn_unlock.png',
+  '../../images/btn_ring.png',
   '../../images/btn_rb_normal.png',
-  '../../images/btn_start_pressed.png',
-  '../../images/btn_lt_pressed.png',
-  '../../images/btn_rt_pressed.png',
-  '../../images/btn_lb_pressed.png',
-  '../../images/btn_rb_pressed.png'
+  '../../images/btn_start_disabled.png',
+  '../../images/btn_lock_disabled.png',
+  '../../images/btn_unlock_disabled.png',
+  '../../images/btn_ring_disabled.png',
+  '../../images/btn_rb_disabled.png'
 ]
 
 const MP3_ID_ARRAY = [
@@ -37,16 +37,16 @@ Page({
     bluetoothAvailable: false,
     connected: false, //是否已连接设备
     isStart: false, //是否是启动状态
-    bottomLayoutMatginTop: 840, //rpx
+    bottomLayoutMatginTop: 1100, //rpx
     bottomLayoutWidth: 96, //百分比
     startButtonWidth: 33, //百分比
     topSpace: 48, //rpx
-    imageOfState: '../../images/ic_lock_blue.png',
+    selectedBtn: -1,
     imageOfMoto: '../../images/img_moto_normal.png',
-    imageOfStartBtn: '../../images/btn_start_normal.png',
-    imageOfLtBtn: '../../images/btn_lt_normal.png',
-    imageOfRtBtn: '../../images/btn_rt_normal.png',
-    imageOfLbBtn: '../../images/btn_lb_normal.png',
+    imageOfStartBtn: '../../images/btn_start.png',
+    imageOfLtBtn: '../../images/btn_lock.png',
+    imageOfRtBtn: '../../images/btn_unlock.png',
+    imageOfLbBtn: '../../images/btn_ring.png',
     imageOfRbBtn: '../../images/btn_rb_normal.png',
     RSSI_Image: '../../images/ic_rssi_x.png',
     timerId: -1,
@@ -338,7 +338,7 @@ Page({
         case 7: //匹配
           //撤防图案
           that.setData({
-            imageOfState: '../../images/ic_unlock_blue.png',
+            selectedBtn: 2,
             isStart: false
           })
           break;
@@ -350,13 +350,14 @@ Page({
         case 6: //报警
           //设防图案
           that.setData({
-            imageOfState: '../../images/ic_lock_blue.png',
+            selectedBtn: 1,
             isStart: false
           })
           break;
 
         case 2: //启动
           that.setData({
+            selectedBtn: 0,
             isStart: true
           })
           break;
@@ -391,14 +392,14 @@ Page({
           //宽高比大于16/9
           that.setData({
             topSpace: 48,
-            bottomLayoutMatginTop: 840,
+            bottomLayoutMatginTop: 1200,
             bottomLayoutWidth: 96,
             startButtonWidth: 32
           })
         } else {
           that.setData({
             topSpace: 0,
-            bottomLayoutMatginTop: 745,
+            bottomLayoutMatginTop: 800,
             bottomLayoutWidth: 80,
             startButtonWidth: 26
           })
@@ -418,8 +419,9 @@ Page({
 
     var that = this;
     const deviceType = sputil.getDeviceType();
-    if (deviceType == '+BA01' || deviceType == '') {
-      //第一代产品限制使用次数
+    const deviceNum = deviceType == '' ? 0 : parseInt(deviceType.substring(3, 5));
+    if (deviceNum == 1 || deviceNum == 4) {
+      //产品1 产品4 限制使用次数
       const myuser = app.globalData.myuser;
       console.log('index.js sendPayload()', myuser);
 
@@ -491,31 +493,40 @@ Page({
 
     if (index == 0) {
       //启动
+      console.log('启动');
       that.sendPayload(bledata.CMD_START)
       that.setData({
+        // selectedBtn: 0,
         isStart: true
-      })
+      });
 
     } else if (index == 1) {
       //设防
+      console.log('锁车');
       that.sendPayload(bledata.CMD_LOCK)
       that.flash(0)
       that.playSound(1)
       that.setData({
-        imageOfState: '../../images/ic_lock_blue.png',
+        selectedBtn: 1,
         isStart: false
       })
 
     } else if (index == 2) {
       //撤防
+      console.log('解锁');
       that.sendPayload(bledata.CMD_UNLOCK)
       that.flash(0)
       that.playSound(2)
       that.setData({
-        imageOfState: '../../images/ic_unlock_blue.png',
+        selectedBtn: 2,
         isStart: false
       })
     } else if (index == 3) {
+      console.log('响铃');
+      that.setData({
+        selectedBtn: 3,
+        isStart: false
+      });
       that.sendPayload(bledata.CMD_CALL)
     } else if (index == 4) {
       that.sendPayload(bledata.CMD_MUTE)
@@ -628,7 +639,7 @@ Page({
   flash: function (count) {
     var that = this
     setTimeout(function () {
-      var imagePath = count % 2 == 0 ? '../../images/img_moto.png' : '../../images/img_moto_normal.png'
+      var imagePath = count % 2 == 0 ? '../../images/img_moto_normal.png' : '../../images/img_moto_normal.png'
 
       //console.log('count=' + count + ', imagepPath=' + imagePath)
 
@@ -648,7 +659,7 @@ Page({
   flash2: function (count = 0) {
     var that = this
     setTimeout(function () {
-      var imagePath = count % 2 == 0 ? '../../images/img_moto.png' : '../../images/img_moto_normal.png'
+      var imagePath = count % 2 == 0 ? '../../images/img_moto_normal.png' : '../../images/img_moto_normal.png'
 
       console.log('that.data.alarmPlayer=' + that.data.alarmPlayer)
 
@@ -664,13 +675,8 @@ Page({
   pay: function (totalFee) {
     var self = this;
     //调用微信支付云接口
-    wx.cloud.callFunction({
-      name: 'wechatpay',
-      data: {
-        totalFee: totalFee //金额(单位：分)
-      },
-      success: res => {
-        const payment = res.result.payment
+    dbutil.pay((res) => {
+      const payment = res.result.payment
         wx.requestPayment({
           ...payment,
           success(res) {
@@ -682,10 +688,8 @@ Page({
           fail(res) {
             console.log('支付失败', res)
           }
-        })
-      },
-      fail: console.error,
-    })
+        });
+    });
   },
 
   onHide: function () {

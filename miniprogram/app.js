@@ -18,11 +18,11 @@ const httputil = require('/utils/httputil.js')
 //   '_BA09', '+BA09'
 // ]
 //正则表达式匹配设备类型
-const TYPE_PATTERN = /^[_+]BA[\d]{2}$/;
+const TYPE_PATTERN = /^[_+]BA[A\d][\d]$/;
 
 App({
-  onLaunch: function () {
-
+  onLaunch: function async () {
+    console.log('dbutil.xxx =', dbutil.xxx);
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力')
     } else {
@@ -31,6 +31,7 @@ App({
         //   env 参数决定接下来小程序发起的云开发调用（wx.cloud.xxx）会默认请求到哪个云环境的资源
         //   此处请填入环境 ID, 环境 ID 可打开云控制台查看
         //   如不填则使用默认环境（第一个创建的环境）
+        //env: 'cloud1-9gulotdwa1a40a52',
         env: 'zxh-9g5pei38c7cdc56d',
         traceUser: true,
       })
@@ -84,9 +85,10 @@ App({
 
         //console.info('### BLE Manufacturer Data:', mfrHead + ' ' + mac + ' ' + deviceType + version)
 
-        if (mfrHead == 'ZXH' && TYPE_PATTERN.test(deviceType)) {
-          let num = parseInt(deviceType.substring(3, 5));
-          if(num >=4 && num <= 6) continue;
+        //  || mfrHead == 'ZXH'
+        if ((mfrHead == 'TL1') && TYPE_PATTERN.test(deviceType)) {
+          let num = parseInt(deviceType.substring(3, 5), 16);
+          if(num == 5 || num == 6 || num == 0xA5 || num == 0xA6) continue;
           //成对存储 deviceId 与 MAC
           sputil.putDeviceIdAndMac(device.deviceId, mac);
 
@@ -138,17 +140,29 @@ App({
     });
   },
 
-  onShow: function () {
-    var that = this
+  onShow: async function () {
+    var that = this;
+    // wx.setKeepScreenOn({
+    //   keepScreenOn: true,
+    //    fail() {//如果失败 再进行调用
+    //      wx.setKeepScreenOn({
+    //          keepScreenOn: true
+    //      });
+    //    }
+    // });
+    
     //bleproxy.startLeScan(true)
-    that.getOpenid();
-    bleproxy.initBluetooth();
-    this.checkBluetoothPermission();
-    dbutil.getUser(function (res) {
+    console.log('app.js onShow() - getUser()');
+    await dbutil.initCloud();
+    console.log('dbutil.getCloud() =', dbutil.getCloud());
+    await dbutil.getUser(function (res) {
       console.log('getUser', res);
       that.globalData.myuser = res.result;
       sputil.setPaySuccess(res.result.is_vip);
     });
+    that.getOpenid();
+    //bleproxy.initBluetooth();
+    this.checkBluetoothPermission();
     //获取网络状态
     wx.getNetworkType({
       success: (result) => {
@@ -180,6 +194,7 @@ App({
           wx.authorize({
             scope: "scope.bluetooth",
             success() {
+              //用户允许使用蓝牙
               bleproxy.initBluetooth();
             }
           });
@@ -214,44 +229,40 @@ App({
   },
 
 
-  getOpenid: function () {
+  getOpenid: async function () {
     var that = this
     // 调用云函数
-    wx.cloud.callFunction({
-      name: 'login',
-      data: {},
-      success: res => {
-        that.globalData.openid = res.result.openid
-        console.log('app.js 获得openid:', that.globalData.openid)
-        httputil.checkUser({
-          openid: res.result.openid,
-          success: (res2) => {
-            console.info('查询是否激活', res2);
-            if (res2.data.code == 0) {
-              if (res2.data.data.length > 0) {
-                if (res2.data.data[0].open_id == res.result.openid) {
-                  console.info('账号已激活');
-                  that.globalData.isActivated = true;
-                }
+    dbutil.getOpenid((res) => {
+      that.globalData.openid = res.result.openid
+      console.log('app.js 获得openid:', that.globalData.openid)
+      httputil.checkUser({
+        openid: res.result.openid,
+        success: (res2) => {
+          console.info('查询是否激活', res2);
+          if (res2.data.code == 0) {
+            if (res2.data.data.length > 0) {
+              if (res2.data.data[0].open_id == res.result.openid) {
+                console.info('账号已激活');
+                that.globalData.isActivated = true;
               }
-            } else {
-              that.globalData.isActivated = false;
             }
-          },
-          fail: (err2) => {
-            console.error('查询是否激活', err2);
+          } else {
+            that.globalData.isActivated = false;
           }
-        });
-      },
-      fail: err => {
-        console.error('[云函数] [login] 调用失败', err)
-      }
-    })
+        },
+        fail: (err2) => {
+          console.error('查询是否激活', err2);
+        }
+      });
+    });
   },
 
 
   isUserAvailable() {
-    if (this.isFreeDevice(sputil.getDeviceType())) {
+    const device = sputil.getSelectedDevice();
+    if(device == null) return true;
+
+    if (this.isFreeDevice(device)) {
       return true; //免费类型设备
     }
 
@@ -268,9 +279,14 @@ App({
   },
 
   //免费型号
-  isFreeDevice(deviceType) {
-    if(deviceType == '') return true;
-    const num = parseInt(deviceType.substring(3, 5));
+  isFreeDevice(device) {
+    console.info('isFreeDevice() - device =', device);
+    if(device.type == '') return true;
+    let num = parseInt(device.type.substring(3, 5), 16);
+    if(num > 0xA0) num -= 0xA0;
+    // if(num == 4) {
+    //   return false;// BA04 是付费版本，带感应功能
+    // }
     return num >= 7;
   },
 

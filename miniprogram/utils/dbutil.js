@@ -1,5 +1,42 @@
+
+var cloud;
+
+const initCloud = async () => {
+  // 声明新的 cloud 实例
+  cloud = new wx.cloud.Cloud({
+    // 资源方 AppID
+    resourceAppid: 'wx8040a92bbd85ec46',
+    // 资源方环境 ID
+    resourceEnv: 'zxh-9g5pei38c7cdc56d',
+  });
+  await cloud.init();
+  console.log('zxh cloud init success');
+}
+
+const getOpenid = async (success) => {
+  cloud.callFunction({
+    name: 'login',
+    data: {},
+    success: success,
+    fail: err => {
+      console.error('[云函数] [login] 调用失败', err)
+    }
+  });
+}
+
+const pay = async (success) => {
+  cloud.callFunction({
+    name: 'wechatpay',
+    data: {
+      totalFee: 1800 //金额(单位：分)
+    },
+    success: success,
+    fail: console.error,
+  });
+}
+
 const bindDevice = (myDevice, complete) => {
-  wx.cloud.callFunction({
+  cloud.callFunction({
     name: 'myclouddb',
     data: {
       action: 'bindDevice',
@@ -10,7 +47,7 @@ const bindDevice = (myDevice, complete) => {
 }
 
 const getDevices = (complete) => {
-  wx.cloud.callFunction({
+  cloud.callFunction({
     name: 'myclouddb',
     data: {
       action: 'getDevices'
@@ -19,18 +56,18 @@ const getDevices = (complete) => {
   })
 }
 
-const getUser = (complete) => {
-  wx.cloud.callFunction({
+const getUser = async (complete) => {
+  await cloud.callFunction({
     name: 'myclouddb',
     data: {
       action: 'getUser'
     },
     complete: complete
-  })
+  });
 }
 
 const updateUserIsVip = (isVip, complete) => {
-  wx.cloud.callFunction({
+  cloud.callFunction({
     name: 'myclouddb',
     data: {
       action: 'updateUserIsVip',
@@ -41,7 +78,7 @@ const updateUserIsVip = (isVip, complete) => {
 }
 
 const updateUserUseTimes = (useTimes, complete) => {
-  wx.cloud.callFunction({
+  cloud.callFunction({
     name: 'myclouddb',
     data: {
       action: 'updateUserUseTimes',
@@ -52,7 +89,7 @@ const updateUserUseTimes = (useTimes, complete) => {
 }
 
 const delDevice = (myDevice, complete) => {
-  wx.cloud.callFunction({
+  cloud.callFunction({
     name: 'myclouddb',
     data: {
       action: 'delDevice',
@@ -63,7 +100,7 @@ const delDevice = (myDevice, complete) => {
 }
 
 const addDeviceByQRCode = (qrcode, platform, complete) => {
-  wx.cloud.callFunction({
+  cloud.callFunction({
     name: 'myclouddb',
     data: {
       action: 'addDeviceByQRCode',
@@ -75,7 +112,7 @@ const addDeviceByQRCode = (qrcode, platform, complete) => {
 }
 
 const getWXUserInfo = (complete) => {
-  wx.cloud.callFunction({
+  cloud.callFunction({
     name: 'myclouddb',
     data: {
       action: 'getWXUserInfo'
@@ -85,7 +122,7 @@ const getWXUserInfo = (complete) => {
 }
 
 const addWXUserInfo = (userInfo, complete) => {
-  wx.cloud.callFunction({
+  cloud.callFunction({
     name: 'myclouddb',
     data: {
       action: 'addWXUserInfo',
@@ -93,6 +130,10 @@ const addWXUserInfo = (userInfo, complete) => {
     },
     complete: complete
   })
+}
+
+const getCloud = () => {
+  return cloud;
 }
 
 module.exports = {
@@ -104,5 +145,9 @@ module.exports = {
   delDevice: delDevice,
   addDeviceByQRCode: addDeviceByQRCode,
   addWXUserInfo: addWXUserInfo,
-  getWXUserInfo: getWXUserInfo
+  getWXUserInfo: getWXUserInfo,
+  initCloud: initCloud,
+  getCloud: getCloud,
+  getOpenid: getOpenid,
+  pay: pay,
 }

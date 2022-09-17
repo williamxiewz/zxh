@@ -3,8 +3,8 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 54px;
-  background: #071A3F;
+  height: 48px;
+  background:rgb(236, 245, 255);
   display: flex;
   padding-bottom: env(safe-area-inset-bottom);
 }
