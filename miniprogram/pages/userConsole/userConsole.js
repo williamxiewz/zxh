@@ -277,7 +277,7 @@ Page({
       const myuser = app.globalData.myuser;
       if(myuser.use_times > 20) {
         that.setData({
-          showJiHuoButton: true
+          showJiHuoButton: false//true
         });
       }
     }
@@ -752,7 +752,7 @@ Page({
         devices: devices,
         deviceId: deviceId,
         ganyingAvailable: ganyingAvailable,
-        showJiHuoButton: that.isShowJiHuoButton()
+        showJiHuoButton: false//that.isShowJiHuoButton()
       });
       ////
     })
