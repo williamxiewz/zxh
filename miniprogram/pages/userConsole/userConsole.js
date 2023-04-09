@@ -605,7 +605,9 @@ Page({
     console.info('isSharedDevice=' + that.isSharedDevice() + ', isUserAvailable=' + app.isUserAvailable());
     var deviceState = '';
     if (value.length >= 12) {
-      if (that.isByte7Valid(value[6])) {
+      let deviceType = sputil.getDeviceTypeById(deviceId); 
+      console.info('设备类型', deviceType);
+      if (that.isGanyingAvailable(deviceType)) {
         //激活用户绑定的设备，才处理感应功能的数据
         if (!that.isSharedDevice() && app.isUserAvailable() && that.isByte7ValidWithGanying(value[6])) {
           console.info('value[12]=' + value[12]);
@@ -805,6 +807,21 @@ Page({
 
 
   onShow: function () {
+    //状态栏颜色
+    wx.setNavigationBarColor({
+      frontColor: '#000000',
+      backgroundColor: '#ffffff',
+      animation: {
+        duration: 400,
+        timingFunc: 'easeIn'
+      }
+    });
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({
+        selected: 1,
+        bg_path: '/images/tab_settings_selected.png'
+      });
+    }
     //云数据库获取用户的设备
     console.info('userConsole.js onShow()');
     this.getDevicesFromCloud();
@@ -873,7 +890,6 @@ Page({
     setTimeout(function () {
       //设置一下标志，在收到上报的状态数据后再发送开感应的指令
       sputil.setSendEnableGanyingCmd(deviceId, true);
-      //const deviceNo = parseInt(myDevice.type.substring(3, 5), 16);
       if (app.globalData.platform == 'android') {
         console.info('android透传绑定成功，发起HID配对');
         //发起蓝牙HID配对，仅针对Android手机
@@ -1122,8 +1138,8 @@ Page({
 
   //根据设备类型判断是否支持“后台感应功能”
   isGanyingAvailable(device) {
-    let num = parseInt(device.type.substring(3, 5), 16);
-    if(num > 0xA0) num -= 0xA0;
+    let deviceType = typeof(device) == 'string' ? device : device.type;
+    let num = util.deviceTypeNum(deviceType);
     return num == 2 || num == 3 || num == 4 || num >= 8;
     //return deviceType == '+BA02' || deviceType == '+BA03' || deviceType == '+BA08' || deviceType == '+BA09'
   },

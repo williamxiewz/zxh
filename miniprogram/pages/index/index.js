@@ -51,7 +51,9 @@ Page({
     RSSI_Image: '../../images/ic_rssi_x.png',
     timerId: -1,
     alarmPlayer: null, //报警播放context
-    timerCount: 0 //计数器
+    timerCount: 0, //计数器
+    ganyingOn: false, //感应是否打开
+    ganyingValue: 3
   },
 
 
@@ -162,7 +164,7 @@ Page({
 
     //定时器启动前先发一包心跳包数据
     if (app.globalData.isNetworkOn) {
-      bleproxy.send(sputil.getDeviceId(), bledata.queryState(), false);
+      bleproxy.writeBLECharacteristic(sputil.getDeviceId(), app.globalData.queryValue, false);
       //todo 2021-6-20
       bleproxy.connect(sputil.getDeviceId());
     }
@@ -190,7 +192,7 @@ Page({
       if ((count % 2) == 0) {
         //每30秒查询一次状态作为心跳包
         //console.info('######### 计数器 ' + count)
-        bleproxy.sendToConnectedDevices(bledata.queryState());
+        bleproxy.sendToConnectedDevices(app.globalData.queryValue, true);
       }
 
       //todo 2021-7-29 带感应功能【HID配对】的产品，配对后没广播，通过 deviceId 去连接
@@ -301,6 +303,91 @@ Page({
     })
   },
 
+  testConnectionState(e) {
+    console.error('连接状态测试', e);
+    this.setData({
+      connected: e.detail.value
+    });
+  },
+
+  //感应开关变化
+  onGanyingCheckChange: function (e) {
+    var that = this;
+
+    if(!that.data.connected) {
+      wx.showModal({
+        content: '未连接设备',
+        showCancel: false
+      });
+      return;
+    }
+
+    let checked = !that.data.ganyingOn;
+    console.log('感应开关', checked);
+
+    if (this.isSharedDevice()) {
+      wx.showModal({
+        content: '分享设备不支持后台感应',
+      });
+      that.setData({
+        ganyingOn: false
+      });
+    } else {
+      if (app.isUserAvailable()) {
+        that.setData({
+          ganyingOn: checked
+        });
+        //开启HID配对
+        that.sendPayload(checked ? 0xFF : 0xFE, checked ? this.data.ganyingValue : 1);
+        var timeout = 100
+        if (checked) {
+          timeout += 1500;
+          setTimeout(function () {
+            if (app.globalData.platform == 'ios') {
+              //iOS系统，断开重连，以发起HID配对
+              console.info('iOS系统，断开重连，以发起HID配对');
+              bleproxy.disconnect(that.data.deviceId);
+            } else {
+              //发起蓝牙HID配对，仅针对Android手机
+              wx.makeBluetoothPair({
+                deviceId: sputil.getDeviceId(),
+                pin: '',
+              });
+            }
+          }, 1500);
+        }
+        setTimeout(function () {
+          //1-关闭感应
+          that.sendPayload(0, checked ? that.data.ganyingValue : 1, 5);
+        }, timeout);
+      } else {
+        //体验用户
+        that.setData({
+          ganyingOn: false
+        });
+        wx.showModal({
+          content: '体验用户无法开启后台感应功能，如需使用后台感应功能，需付费18元永久使用。',
+          success: (res) => {
+            if (res.confirm) {
+              that.pay();
+            }
+          }
+        });
+      }
+    }
+  },
+
+  //判断当前选中的设备是否是分享来的设备【控制页扫码添加的设备】
+  isSharedDevice: function () {
+    var isShare = false; //是否是通过扫码添加的设备
+    let devices = sputil.getDevices();
+    devices.forEach(element => {
+      if (sputil.getDeviceMac() == element.mac) {
+        isShare = element.openids.indexOf(app.globalData.openid, 0) == -1;
+      }
+    });
+    return isShare;
+  },
 
   //处理接收到的数据
   handleRxData: function (buffer) {
@@ -311,6 +398,19 @@ Page({
 
       if (state < 0 && state > 7) {
         return
+      }
+
+      if(value.length > 12) {
+        //激活用户绑定的设备，才处理感应功能的数据
+        if (!that.isSharedDevice() && app.isUserAvailable()) {
+          //感应状态1表示关闭
+          that.setData({
+            ganyingOn: value[12] != 1
+          });
+          if(value[12] != 1) {
+            that.data.ganyingValue = value[12];
+          }
+        }
       }
 
       if (that.data.deviceState != state)
@@ -373,7 +473,22 @@ Page({
   },
 
   onShow: function () {
-    var that = this
+    var that = this;
+    //状态栏颜色
+    wx.setNavigationBarColor({
+      frontColor: '#000000',
+      backgroundColor: '#ffffff',
+      animation: {
+        duration: 400,
+        timingFunc: 'easeIn'
+      }
+    });
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({
+        selected: 0,
+        bg_path: '/images/tab_ctrl_selected.png'
+      });
+    }
     const isConnected = bleproxy.isConnected(sputil.getDeviceId());
     that.startTimer();
 
@@ -411,7 +526,7 @@ Page({
     })
   },
 
-  sendPayload: function (cmdCode) {
+  sendPayload: function (cmdCode, ganying, optCode = 4) {
     if (!app.globalData.isNetworkOn) {
       viewutil.toast('网络已断开');
       return;
@@ -419,7 +534,7 @@ Page({
 
     var that = this;
     const deviceType = sputil.getDeviceType();
-    const deviceNum = deviceType == '' ? 0 : parseInt(deviceType.substring(3, 5));
+    const deviceNum = deviceType == '' ? 0 : util.deviceTypeNum(deviceType);
     if (deviceNum == 1 || deviceNum == 4) {
       //产品1 产品4 限制使用次数
       const myuser = app.globalData.myuser;
@@ -465,12 +580,7 @@ Page({
       let sensitivity = arr[0];
       let limitSpeed = arr[1] == 1;
       let volume = arr[2];
-      if (sputil.getDeviceType() == '+BA02') {
-        //最后一个感应参数0就是为了使第七个字节变为2
-        bleproxy.send(deviceId, bledata.mkData(cmdCode, sensitivity, limitSpeed, volume, 4, 0));
-      } else {
-        bleproxy.send(deviceId, bledata.mkData(cmdCode, sensitivity, limitSpeed, volume, 4));
-      }
+      bleproxy.send(deviceId, bledata.mkData(cmdCode, sensitivity, limitSpeed, volume, optCode, ganying));
     }
   },
 
@@ -490,45 +600,33 @@ Page({
     let index = parseInt(e.currentTarget.dataset.btnindex)
     //console.log("TouchEnd", index)
     that.setImage(index, IMAGE_ARRAY[index])
+    that.setData({
+      selectedBtn: index
+    });
 
     if (index == 0) {
       //启动
       console.log('启动');
       that.sendPayload(bledata.CMD_START)
-      that.setData({
-        // selectedBtn: 0,
-        isStart: true
-      });
-
     } else if (index == 1) {
-      //设防
-      console.log('锁车');
+      //上锁
+      console.log('上锁');
       that.sendPayload(bledata.CMD_LOCK)
-      that.flash(0)
+      //that.flash(0)
       that.playSound(1)
-      that.setData({
-        selectedBtn: 1,
-        isStart: false
-      })
-
     } else if (index == 2) {
-      //撤防
+      //解锁
       console.log('解锁');
       that.sendPayload(bledata.CMD_UNLOCK)
-      that.flash(0)
+      //that.flash(0)
       that.playSound(2)
-      that.setData({
-        selectedBtn: 2,
-        isStart: false
-      })
     } else if (index == 3) {
-      console.log('响铃');
-      that.setData({
-        selectedBtn: 3,
-        isStart: false
-      });
+      //寻车
+      console.log('寻车');
       that.sendPayload(bledata.CMD_CALL)
     } else if (index == 4) {
+      //静音
+      console.log('静音');
       that.sendPayload(bledata.CMD_MUTE)
     }
   },
@@ -562,7 +660,9 @@ Page({
   playSound: function (mp3IdIndex, loop = false) {
     var that = this
     this.stopAlarm()
-    let audioContext = wx.createInnerAudioContext()
+    let audioContext = wx.createInnerAudioContext({
+      useWebAudioImplement: true
+    })
     audioContext.src = MP3_ID_ARRAY[mp3IdIndex]
     audioContext.loop = loop
     audioContext.play()

@@ -18,10 +18,10 @@ const httputil = require('/utils/httputil.js')
 //   '_BA09', '+BA09'
 // ]
 //正则表达式匹配设备类型
-const TYPE_PATTERN = /^[_+]BA[A\d][\d]$/;
+const TYPE_PATTERN = /^[_+]BA[A-F\d][\d]$/;
 
 App({
-  onLaunch: function async () {
+  onLaunch: function () {
     console.log('dbutil.xxx =', dbutil.xxx);
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力')
@@ -34,7 +34,7 @@ App({
         //env: 'cloud1-9gulotdwa1a40a52',
         env: 'zxh-9g5pei38c7cdc56d',
         traceUser: true,
-      })
+      });
     }
 
     this.globalData = {}
@@ -85,12 +85,13 @@ App({
 
         //console.info('### BLE Manufacturer Data:', mfrHead + ' ' + mac + ' ' + deviceType + version)
 
-        //  || mfrHead == 'ZXH'
-        if ((mfrHead == 'TL1') && TYPE_PATTERN.test(deviceType)) {
+        //  || mfrHead == 'ZXH' XDZ
+        if ((mfrHead == 'XDZ' || mfrHead == 'ZXH') && TYPE_PATTERN.test(deviceType)) {
           let num = parseInt(deviceType.substring(3, 5), 16);
           if(num == 5 || num == 6 || num == 0xA5 || num == 0xA6) continue;
           //成对存储 deviceId 与 MAC
           sputil.putDeviceIdAndMac(device.deviceId, mac);
+          sputil.putDeviceType(device.deviceId, deviceType);
 
           const devices = sputil.getDevices();
           var contains = false;
@@ -153,7 +154,14 @@ App({
     
     //bleproxy.startLeScan(true)
     console.log('app.js onShow() - getUser()');
-    await dbutil.initCloud();
+    if(!dbutil.isInit()) {
+      await dbutil.initCloud();
+      bledata.encryptPayload(bledata.queryState(), function(res){ 
+        console.info('app.js onShow() - 查询状态的数据加密结果', res); 
+        that.globalData.queryValue = util.hex2array(res.result.value); 
+      });
+    }
+    //
     console.log('dbutil.getCloud() =', dbutil.getCloud());
     await dbutil.getUser(function (res) {
       console.log('getUser', res);
@@ -282,8 +290,7 @@ App({
   isFreeDevice(device) {
     console.info('isFreeDevice() - device =', device);
     if(device.type == '') return true;
-    let num = parseInt(device.type.substring(3, 5), 16);
-    if(num > 0xA0) num -= 0xA0;
+    let num = util.deviceTypeNum(device.type);
     // if(num == 4) {
     //   return false;// BA04 是付费版本，带感应功能
     // }

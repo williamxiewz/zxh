@@ -74,11 +74,14 @@ const stopLeScan = () => {
   })
 }
 
-const sendToConnectedDevices = (value) => {
+const sendToConnectedDevices = (value, isWriteCharacteristic = false) => {
   connectedIdArr.forEach(deviceId => {
-    send(deviceId, value, false)
+    if(isWriteCharacteristic) {  
+      writeBLECharacteristic(deviceId, value, false);  
+    } else {  
+      send(deviceId, value, false);  
+    }
   });
-
 }
 
 const send = (deviceId, value, showToast = false) => {
@@ -349,5 +352,6 @@ module.exports = {
   removeDeviceId: removeDeviceId,
   isConnected: isConnected,
   close: close,
-  showModal: showModal
+  showModal: showModal,
+  writeBLECharacteristic: writeBLECharacteristic
 }

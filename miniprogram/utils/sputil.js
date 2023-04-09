@@ -75,6 +75,15 @@ const getSensitivity = () => {
   return wx.getStorageSync('sensitivity')
 }
 
+//用于根据 deviceId 查询 deviceiType  
+const putDeviceType = (deviceId, type) => {  
+  wx.setStorageSync(deviceId + '_type', type);  
+}  
+ 
+const getDeviceTypeById = (deviceId) => {  
+  return wx.getStorageSync(deviceId) + '_type';  
+}
+
 //针对iOS系统deviceId不一样的情况，将MAC与deviceId成对存储
 const putDeviceIdAndMac = (deviceId, mac) => {
   wx.setStorageSync(deviceId, mac)
@@ -176,5 +185,7 @@ module.exports = {
   isPaySuccess: isPaySuccess,
   setPaySuccess: setPaySuccess,
   isSendEnableGanyingCmd: isSendEnableGanyingCmd,
-  setSendEnableGanyingCmd: setSendEnableGanyingCmd
+  setSendEnableGanyingCmd: setSendEnableGanyingCmd,  
+  putDeviceType: putDeviceType,  
+  getDeviceTypeById: getDeviceTypeById
 }

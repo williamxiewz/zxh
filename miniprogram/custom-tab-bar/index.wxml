@@ -1,14 +1,9 @@
 <!--miniprogram/custom-tab-bar/index.wxml-->
-<cover-view class="tab-bar" style="padding: 10rpx;">
-  <cover-view style="padding: 0 20rpx;">
-  <!-- 168 * 89 -->
-    <cover-image src="/images/tab_ctrl.png" style="width: 168rpx;height: 89rpx;" bindtap="switchTab" data-path="/pages/index/index"></cover-image>
-  </cover-view>
-  <cover-view class="tab-bar-item" style="padding: 0rpx;flex: 1;">
-  <!-- 220 * 34 -->
-    <cover-image src="/images/logo.png" style="width: 220rpx;height: 34rpx;"></cover-image>
-  </cover-view>
-  <cover-view style="padding: 0 20rpx;">
-    <cover-image src="/images/tab_settings.png" style="width: 168rpx;height: 89rpx;" bindtap="switchTab" data-path="/pages/userConsole/userConsole"></cover-image>
+<cover-view class="tab-bar" style="padding: 10rpx;background-color: white;">
+  <cover-view wx:for="{{list}}" wx:key="index" class="tab-bar-item" data-path="{{item.pagePath}}" data-index="{{index}}"
+    bindtap="switchTab">
+    <cover-image src="{{selected === index ? item.selectedIconPath : item.iconPath}}"></cover-image>
+    <cover-view style="color: {{selected === index ? selectedColor : color}};font-size:16px;margin-left:6px;">
+      {{item.text}}</cover-view>
   </cover-view>
 </cover-view>
