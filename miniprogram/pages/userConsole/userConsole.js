@@ -609,7 +609,7 @@ Page({
       console.info('设备类型', deviceType);
       if (that.isGanyingAvailable(deviceType)) {
         //激活用户绑定的设备，才处理感应功能的数据
-        if (!that.isSharedDevice() && app.isUserAvailable() && that.isByte7ValidWithGanying(value[6])) {
+        if (!that.isSharedDevice() && app.isUserAvailable()) {
           console.info('value[12]=' + value[12]);
           //配对成功发送开感应的指令
           if (sputil.isSendEnableGanyingCmd(deviceId)) {
@@ -617,6 +617,9 @@ Page({
             //感应距离为1表示感应关闭
             let ganyingValue = value[12] == 1 ? 3 : value[12];
             that.sendEnanbleGanyingCmd(deviceId, ganyingValue);
+            setTimeout(function () {
+              that.sendEnanbleGanyingCmd(deviceId, ganyingValue);
+            }, 200);
           }
           
           switch (value[12]) {
@@ -1013,7 +1016,7 @@ Page({
                 if (res2.result.stats.removed > 0 || res2.result.stats.updated > 0) {
                   that.doDelete(item);
                   if (that.isGanyingAvailable(item)) {
-                    that.tipAfterDelete(item.type);
+                    that.tipAfterDelete(item);
                   }
                 }
               });
@@ -1026,22 +1029,9 @@ Page({
     }
   },
 
-  tipAfterDelete: function (deviceType) {
-    var productNo = 'XX';
-    if (deviceType == '+BA02') {
-      productNo = '02'
-    }
-    if (deviceType == '+BA03') {
-      productNo = '03'
-    }
-    if (deviceType == '+BA08') {
-      productNo = '08'
-    }
-    if (deviceType == '+BA09') {
-      productNo = '09'
-    }
+  tipAfterDelete: function (device) {
     wx.showModal({
-      content: '确保设备能再次与手机配对，请进入手机-设置-蓝牙-选择 ZXH_BA' + productNo + '****设备点击取消配对或忽略此设备',
+      content: '确保设备能再次与手机配对，请进入手机-设置-蓝牙-选择 ' + device.name + ' 设备点击取消配对或忽略此设备',
       showCancel: false
     });
   },

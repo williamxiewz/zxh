@@ -81,7 +81,7 @@ const putDeviceType = (deviceId, type) => {
 }  
  
 const getDeviceTypeById = (deviceId) => {  
-  return wx.getStorageSync(deviceId) + '_type';  
+  return wx.getStorageSync(deviceId + '_type');  
 }
 
 //针对iOS系统deviceId不一样的情况，将MAC与deviceId成对存储
