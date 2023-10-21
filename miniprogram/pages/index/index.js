@@ -53,9 +53,30 @@ Page({
     alarmPlayer: null, //报警播放context
     timerCount: 0, //计数器
     ganyingOn: false, //感应是否打开
-    ganyingValue: 3
+    ganyingValue: 3,
+    isCall: true, //true是寻车， false是开座包
+    callBtnConnectedImage: 'btn_call.png'
   },
 
+  setCallButtonImage() {
+    let imageName;
+    if(this.data.isCall) {
+      if(this.data.selectedBtn == 3) {
+        imageName = 'btn_call_active.png';
+      } else {
+        imageName = 'btn_call.png';
+      }
+    } else {
+      if(this.data.selectedBtn == 3) {
+        imageName = 'btn_open_active.png';
+      } else {
+        imageName = 'btn_open.png';
+      }
+    }
+    this.setData({
+      callBtnConnectedImage: imageName
+    });
+  },
 
   //扫码添加设备
   scanCode: function () {
@@ -79,81 +100,11 @@ Page({
           viewutil.toast(res2.result.msg)
           if (res2.result.code == 0) {
             //onfire.fire('userConsole_update_devices', res2.result.device);
-            that.getDevicesFromCloud();
+            app.getDevicesFromCloud();
           }
         });
       }
     });
-  },
-
-  getDevicesFromCloud() {
-    dbutil.getDevices(res => {
-      console.info('index.js 云端设备：', res);
-      var devices = [{
-          type: '',
-          deviceId: '',
-          mac: '',
-          name: '+',
-          version: '',
-          connected: false
-        },
-        {
-          type: '',
-          deviceId: '',
-          mac: '',
-          name: '+',
-          version: '',
-          connected: false
-        },
-        {
-          type: '',
-          deviceId: '',
-          mac: '',
-          name: '+',
-          version: '',
-          connected: false
-        }
-      ]
-
-      for (var i = 0; i < devices.length; i++) {
-        if (i < res.result.length) {
-          let deviceId = sputil.getDeviceIdByMac(res.result[i].mac)
-          devices[i] = res.result[i]
-          devices[i].deviceId = deviceId
-          devices[i].connected = bleproxy.isConnected(deviceId)
-        }
-      }
-
-      ///
-      var mac = ''
-      var deviceId = ''
-      devices.forEach(element => {
-        console.log(element)
-        let tempMac = element.mac
-        let tempDeviceId = sputil.getDeviceIdByMac(tempMac)
-        element.connected = bleproxy.isConnected(tempDeviceId)
-        if (tempMac != '' && tempMac == sputil.getDeviceMac()) {
-          mac = tempMac
-          deviceId = tempDeviceId
-        }
-      })
-
-      //默认选中第一个
-      if (mac == '' || deviceId == '') {
-        if (devices[0].mac != '') {
-          mac = devices[0].mac;
-          deviceId = devices[0].deviceId;
-          if (!deviceId) {
-            deviceId = util.mac2DeviceId(mac); //仅限android系统
-          }
-        }
-      }
-      sputil.putDeviceMac(mac);
-      sputil.putDeviceId(deviceId);
-      sputil.putDevices(devices);
-      /////
-    });
-    //////
   },
 
   //开启定时器读取RSSI，发送心跳包
@@ -206,7 +157,7 @@ Page({
               bleproxy.connect(element.deviceId);
             } else {
               let macstd = util.mac2DeviceId(element.mac);
-              sputil.putDeviceIdAndMac(macstd, element.mac);
+              // sputil.putDeviceIdAndMac(macstd, element.mac);
               bleproxy.connect(macstd);
             }
           }
@@ -241,15 +192,17 @@ Page({
     })
     //监听蓝牙状态
     onfire.on('onBluetoothAdapterStateChange_index', function (result) {
-      if (!that.data.bluetoothAvailable && result.available) {
-        //重新初始化蓝牙
-        bleproxy.initBluetooth()
+      if(result.available) {
+        that.setData({
+          bluetoothAvailable: true
+        });
+      } else {
+        that.setData({
+          bluetoothAvailable: false,
+          connected: false,
+        });
       }
-
-      that.setData({
-        bluetoothAvailable: result.available
-      })
-    })
+    });
 
     // 监听设备的连接状态
     onfire.on('onBLEConnectionStateChange_index', function (res) {
@@ -300,8 +253,8 @@ Page({
       } else {
         that.handleRxData(res.value)
       }
-    })
-  },
+    });
+  }, // onLoad
 
   testConnectionState(e) {
     console.error('连接状态测试', e);
@@ -314,7 +267,7 @@ Page({
   onGanyingCheckChange: function (e) {
     var that = this;
 
-    if(!that.data.connected) {
+    if (!that.data.connected) {
       wx.showModal({
         content: '未连接设备',
         showCancel: false
@@ -400,14 +353,14 @@ Page({
         return
       }
 
-      if(value.length > 12) {
+      if (value.length > 12) {
         //激活用户绑定的设备，才处理感应功能的数据
         if (!that.isSharedDevice() && app.isUserAvailable()) {
           //感应状态1表示关闭
           that.setData({
             ganyingOn: value[12] != 1
           });
-          if(value[12] != 1) {
+          if (value[12] != 1) {
             that.data.ganyingValue = value[12];
           }
         }
@@ -489,6 +442,7 @@ Page({
         bg_path: '/images/tab_ctrl_selected.png'
       });
     }
+    let selectedDevice = sputil.getSelectedDevice();
     const isConnected = bleproxy.isConnected(sputil.getDeviceId());
     that.startTimer();
 
@@ -496,8 +450,10 @@ Page({
 
     that.setData({
       logo: sputil.getLogo(),
-      connected: isConnected
-    })
+      connected: isConnected,
+      isCall: util.isCall(selectedDevice)
+    });
+    this.setCallButtonImage();
 
     wx.getSystemInfo({
       success: (result) => {
@@ -523,7 +479,7 @@ Page({
       fail: (err) => {
         console.error(err)
       }
-    })
+    });
   },
 
   sendPayload: function (cmdCode, ganying, optCode = 4) {
@@ -597,7 +553,10 @@ Page({
     //console.log("TouchEnd", e)
     var that = this
 
-    let index = parseInt(e.currentTarget.dataset.btnindex)
+    let index = parseInt(e.currentTarget.dataset.btnindex);
+    if (this.data.selectedBtn == 0 && index == 0) {
+      index = 2; //启动状态下再次按启动，发解锁指令
+    }
     //console.log("TouchEnd", index)
     that.setImage(index, IMAGE_ARRAY[index])
     that.setData({
@@ -777,18 +736,18 @@ Page({
     //调用微信支付云接口
     dbutil.pay((res) => {
       const payment = res.result.payment
-        wx.requestPayment({
-          ...payment,
-          success(res) {
-            console.log('支付成功', res);
-            sputil.setPaySuccess(true);
-            app.globalData.myuser.is_vip = true; //更新为付费用户
-            console.log('更新为付费用户', app.globalData.myuser.is_vip);
-          },
-          fail(res) {
-            console.log('支付失败', res)
-          }
-        });
+      wx.requestPayment({
+        ...payment,
+        success(res) {
+          console.log('支付成功', res);
+          sputil.setPaySuccess(true);
+          app.globalData.myuser.is_vip = true; //更新为付费用户
+          console.log('更新为付费用户', app.globalData.myuser.is_vip);
+        },
+        fail(res) {
+          console.log('支付失败', res)
+        }
+      });
     });
   },
 

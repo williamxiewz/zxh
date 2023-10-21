@@ -102,7 +102,7 @@
       <!-- 版本信息 -->
       <view class="list-item">
         <text class="request-text" style="flex:1;">版本信息</text>
-        <text class="request-text">V1.0.1</text>
+        <text class="request-text">V1.0.2</text>
       </view>
       <!-- 客服 -->
       <view class="list-item">

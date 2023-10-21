@@ -157,13 +157,13 @@ const uint8ToHex = (byte) => {
 const mac2DeviceId = (mac) => {
   if (mac.match(/[0-9A-Fa-f]{12}/)) {
     let arr = new Uint8Array(hex2array(mac));
-    let macstd = '';
-    for (let i = arr.byteLength - 1; i >= 0; i--) {
-      macstd += uint8ToHex(arr[i]);
-      if (i > 0) {
-        macstd += ':';
-      }
-    }
+    let macstd = Array.from(arr).map(e => uint8ToHex(e)).join(':');
+    // for (let i = arr.byteLength - 1; i >= 0; i--) {
+    //   macstd += uint8ToHex(arr[i]);
+    //   if (i > 0) {
+    //     macstd += ':';
+    //   }
+    // }
     console.log(`mac2DeviceId() - ${mac} -> ${macstd}`);
     return macstd;
   } else {
@@ -183,6 +183,15 @@ const deviceTypeNum = (deviceType) => {
   return num;
 }
 
+//是否是带寻车功能的设备
+const isCall = (device) => {
+  if(!device) {
+    return true;
+  }
+  // XL2 是“开座包”，其他是“寻车”
+  return device.name.indexOf('XL2') == -1;
+}
+
 module.exports = {
   formatTime: formatTime,
   array2hex: array2hex,
@@ -193,5 +202,6 @@ module.exports = {
   arraycopy: arraycopy,
   getCurrentDate: getCurrentDate,
   mac2DeviceId: mac2DeviceId,
-  deviceTypeNum: deviceTypeNum
+  deviceTypeNum: deviceTypeNum,
+  isCall: isCall
 }

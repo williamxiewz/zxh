@@ -24,6 +24,11 @@ const isConnected = (str) => {
   return false;
 }
 
+//关闭手机蓝牙的时候调用
+const removeAllDeviceIds =()=>{
+  connectedIdArr.length = 0;
+}
+
 const removeDeviceId = (str) => {
   connectedIdArr.forEach((item, index, arr) => {
     if (item === str) {
@@ -124,10 +129,20 @@ const writeBLECharacteristic = (deviceId, value, showToast = false) => {
  * @param {*} deviceId 
  */
 const connect = (deviceId) => {
-  //log.i('>>> 发起连接 ' + deviceId)
-  if (isConnected(deviceId)) {
+  if (!deviceId) {
+    console.warn('bleproxy.js connect() >>> deviceId无效 ' + deviceId);
     return;
   }
+  if(!bluetoothAvailable) {
+    console.warn('bleproxy.js connect() >>> 蓝牙没打开，无法连接 ' + deviceId);
+    return;
+  }
+  if (isConnected(deviceId)) {
+    console.warn('bleproxy.js connect() >>> 已经连接 ' + deviceId);
+    return;
+  }
+  disconnect(deviceId);
+  log.i('>>> 发起连接 ' + deviceId);
 
   wx.createBLEConnection({
     deviceId: deviceId,
@@ -350,6 +365,7 @@ module.exports = {
   disconnect: disconnect,
   addDeviceId: addDeviceId,
   removeDeviceId: removeDeviceId,
+  removeAllDeviceIds: removeAllDeviceIds,
   isConnected: isConnected,
   close: close,
   showModal: showModal,

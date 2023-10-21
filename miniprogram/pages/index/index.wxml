@@ -46,8 +46,8 @@
         </view>
         <view class="container-r btn_lay">
           <view class="btn_bg">
-            <image src="../../images/btn_call_disabled.png" class="btn_nor" mode="heightFix" />
-            <text class="btn_label">寻车</text>
+            <image src="../../images/{{isCall?'btn_call_disabled':'btn_open_disabled'}}.png" class="btn_nor" mode="heightFix" />
+            <text class="btn_label">{{isCall?'寻车':'开座包'}}</text>
           </view>
         </view>
         <view class="container-r btn_lay">
@@ -80,8 +80,8 @@
         <!-- 寻车 -->
         <view class="container-r btn_lay">
           <view class="{{selectedBtn === 3 ?'btn_bg_selected':'btn_bg'}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3">
-            <image src="{{selectedBtn === 3 ? '../../images/btn_call_active.png' : '../../images/btn_call.png'}}" class="btn_nor" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3" />
-            <text class="btn_label" style="color: {{selectedBtn === 3 ?'white':'black'}};">寻车</text>
+            <image src="../../images/{{callBtnConnectedImage}}" class="btn_nor" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3" />
+            <text class="btn_label" style="color: {{selectedBtn === 3 ?'white':'black'}};">{{isCall?'寻车':'开座包'}}</text>
           </view>
         </view>
         <!-- 静音 -->
