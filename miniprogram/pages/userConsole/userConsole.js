@@ -30,7 +30,7 @@ Page({
   data: {
     canIUseGetUserProfile: false,
     logged: false,
-    avatarUrl: './user-unlogin.png',
+    avatarUrl: '../../images/user_unlogin.png',
     nickname: '点击登录',
     mac: -1, //选中的设备MAC
     devices: [{
@@ -88,7 +88,6 @@ Page({
     isEncrypt: false, //是否加密蓝牙交互数据
     myDevice: null, //临时连接的设备
     showJiHuoButton: false, //是否显示 “激活” 按钮
-    showGetPhoneNumberButton: true,
     showActionsheet: false,
     groups: [{
         text: '微信支付',
@@ -125,36 +124,6 @@ Page({
 
   testPay(e) {
     this.pay();
-  },
-
-  getPhoneNumber(e) {
-    console.log('getPhoneNumber', e)
-    var that = this;
-    var cloudIDType = typeof (e.detail.cloudID);
-    if (cloudIDType != 'string') {
-      console.error('getPhoneNumber() - cloudIDType=' + cloudIDType)
-      return;
-    }
-    dbutil.cloud.callFunction({
-      name: 'openapi',
-      data: {
-        action: 'getOpenData',
-        openData: {
-          list: [
-            e.detail.cloudID,
-          ]
-        }
-      }
-    }).then(res => {
-      console.log('[getPhoneNumber] 调用成功：', res);
-      let phoneNumber = res.result.list[0].data.phoneNumber;
-      console.info("获得手机号", phoneNumber);
-      sputil.putPhoneNumber(phoneNumber);
-      that.setData({
-        showGetPhoneNumberButton: false
-      });
-      that.jiHuo();
-    }).catch(console.error);
   },
 
   showPairDeviceDialog: function () {
@@ -397,6 +366,7 @@ Page({
 
   setUserInfo: function (userInfo) {
     if (!this.data.logged) {
+      console.error('用户信息', userInfo);
       this.setData({
         logged: true,
         avatarUrl: userInfo.avatarUrl,
@@ -427,10 +397,8 @@ Page({
 
   onLoad: function (options) {
     var that = this;
-    console.info('手机号 ' + sputil.getPhoneNumber());
     that.setData({
-      isEncrypt: sputil.isEncrypt(),
-      showGetPhoneNumberButton: sputil.getPhoneNumber() == ''
+      isEncrypt: sputil.isEncrypt()
     });
 
     if (wx.getUserProfile) {
