@@ -9,7 +9,7 @@
     "backgroundColor": "#F6F6F6",
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#F6F6F6",
-    "navigationBarTitleText": "新蕾智行",
+    "navigationBarTitleText": "合美智能",
     "navigationBarTextStyle": "black"
   },
   "usingComponents": {
@@ -26,12 +26,12 @@
       {
         "pagePath": "pages/index/index",
         "iconPath": "images/tab_ctrl.png",
-        "text": "控制"
+        "text": ""
       },
       {
         "pagePath": "pages/userConsole/userConsole",
         "iconPath": "images/tab_settings.png",
-        "text": "设置"
+        "text": ""
       }
     ]
   },

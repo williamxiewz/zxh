@@ -1,30 +1,37 @@
 Component({
   data: {
     selected: 0,
-    color: "#BBBBBB",
-    selectedColor: "#fa3d10",
+    color: "#FFFFFF",
+    selectedColor: "#FFFFFF",
+    bg_path: "/images/tab_ctrl.png",
     list: [{
       pagePath: "/pages/index/index",
       iconPath: "/images/tab_ctrl.png",
-      selectedIconPath: "/images/tab_ctrl_selected.png",
-      text: "控制"
+      selectedIconPath: "/images/tab_ctrl.png",
+      text: ""
     }, {
       pagePath: "/pages/userConsole/userConsole",
       iconPath: "/images/tab_settings.png",
-      selectedIconPath: "/images/tab_settings_selected.png",
-      text: "设置"
+      selectedIconPath: "/images/tab_settings.png",
+      text: ""
     }]
   },
-  attached() {
-  },
+  attached() {},
   methods: {
     switchTab(e) {
       const data = e.currentTarget.dataset
+      const index = data.index;
       const url = data.path
-      wx.switchTab({ url })
-      this.setData({
-        selected: data.index
-      })
+      const bgPath = index == 0 ? '/images/tab_ctrl.png' : '/images/tab_settings.png'
+      console.log("切换tab", e);
+      var that = this;
+      that.setData({
+        selected: index,
+        bg_path: bgPath
+      });
+      wx.switchTab({
+        url: url
+      });
     }
   }
 })
