@@ -1,6 +1,6 @@
 
 var cloud;
-var isinitialized = false;
+var _isCloudInit = false;
 
 const initCloud = async () => {
   // 声明新的 cloud 实例
@@ -11,8 +11,12 @@ const initCloud = async () => {
     resourceEnv: 'zxh-9g5pei38c7cdc56d',
   });
   await cloud.init();
-  isinitialized = true;
+  _isCloudInit = true;
   console.log('zxh cloud init success');
+}
+
+const isCloudInit = () => {
+  return _isCloudInit;
 }
 
 const getOpenid = async (success) => {
@@ -138,8 +142,6 @@ const getCloud = () => {
   return cloud;
 }
 
-const isInit = () => isinitialized;
-
 module.exports = {
   getUser: getUser,
   updateUserIsVip: updateUserIsVip,
@@ -154,5 +156,5 @@ module.exports = {
   getCloud: getCloud,
   getOpenid: getOpenid,
   pay: pay,
-  isInit: isInit
+  isCloudInit: isCloudInit
 }

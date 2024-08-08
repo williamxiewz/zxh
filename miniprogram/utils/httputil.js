@@ -46,19 +46,19 @@ const bindCode = (args) => {
  * @param {*} args 对象，包含属性：openid, success, fail
  */
 const checkUser = (args) => {
-  console.log('bindCode', args)
-  wx.request({
-    url: URL_CHECK_USER,
-    method: 'POST',
-    header: {
-      'content-type': 'application/x-www-form-urlencoded'
-    },
-    data: {
-      user_open_id: args.openid
-    },
-    success: args.success,
-    fail: args.fail
-  })
+  // console.log('bindCode', args)
+  // wx.request({
+  //   url: URL_CHECK_USER,
+  //   method: 'POST',
+  //   header: {
+  //     'content-type': 'application/x-www-form-urlencoded'
+  //   },
+  //   data: {
+  //     user_open_id: args.openid
+  //   },
+  //   success: args.success,
+  //   fail: args.fail
+  // })
 }
 
 module.exports = {

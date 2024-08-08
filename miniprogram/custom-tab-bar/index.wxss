@@ -38,10 +38,10 @@
 }
 
 .tab-bar-item cover-image {
-  width: 25px;
-  height: 25px;
+  width: 27px;
+  height: 27px;
 }
 
 .tab-bar-item cover-view {
-  font-size: 12px;
+  font-size: 10px;
 }

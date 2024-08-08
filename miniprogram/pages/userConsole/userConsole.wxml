@@ -17,9 +17,7 @@
       <button wx:else open-type="getUserInfo" bindgetuserinfo="onGetUserInfo"
         class="userinfo-nickname">{{nickname}}</button>
       <view style="display:{{showJiHuoButton? 'block':'none'}};padding-top:10rpx;padding-right:60rpx;">
-        <button wx:if="{{showGetPhoneNumberButton}}" class="button_save" open-type="getPhoneNumber"
-          bindgetphonenumber="getPhoneNumber" style="width:180rpx;padding: 0px 0px;">激活</button>
-        <button wx:else class="button_save" bindtap="jiHuo" style="width:180rpx;padding: 0px 0px;">激活</button>
+        <button class="button_save" bindtap="jiHuo" style="width:180rpx;padding: 0px 0px;">激活</button>
       </view>
     </view>
 
@@ -32,7 +30,7 @@
           <view class="radio {{mac != '' && mac == item.mac? 'radio-checked':'radio-unchecked'}}" bindtap="addDevice"
             bindlongpress="removeDevice" data-item="{{item}}">
             <!-- <radio value="{{mac}}" checked="{{deviceIndex == item.index}}" /> -->
-            <view style="color:{{ item.deviceId=='' || item.connected? 'black':'#dddddd'}};">{{item.name}}
+            <view style="color:{{ item.name=='+' || item.connected? 'black':'#dddddd'}};">{{item.name}}
               {{item.version}}</view>
           </view>
         </label>
@@ -108,7 +106,8 @@
       <view class="list-item">
         <button class="request-text" style="flex:1;" open-type="contact">联系客服</button>
       </view>
-      <view style="height: 100rpx;width: 100%;">
+      <view class="list-item">
+        <view style="width: 100%;height: 50rpx;" />
       </view>
     </view>
     <!-- <button bindtap="testPay">测试支付</button> -->

@@ -127,36 +127,6 @@ Page({
     this.pay();
   },
 
-  getPhoneNumber(e) {
-    console.log('getPhoneNumber', e)
-    var that = this;
-    var cloudIDType = typeof (e.detail.cloudID);
-    if (cloudIDType != 'string') {
-      console.error('getPhoneNumber() - cloudIDType=' + cloudIDType)
-      return;
-    }
-    dbutil.cloud.callFunction({
-      name: 'openapi',
-      data: {
-        action: 'getOpenData',
-        openData: {
-          list: [
-            e.detail.cloudID,
-          ]
-        }
-      }
-    }).then(res => {
-      console.log('[getPhoneNumber] 调用成功：', res);
-      let phoneNumber = res.result.list[0].data.phoneNumber;
-      console.info("获得手机号", phoneNumber);
-      sputil.putPhoneNumber(phoneNumber);
-      that.setData({
-        showGetPhoneNumberButton: false
-      });
-      that.jiHuo();
-    }).catch(console.error);
-  },
-
   showPairDeviceDialog: function () {
     var self = this
 
@@ -264,6 +234,7 @@ Page({
 
     sputil.putDeviceMac(myDevice.mac);
     sputil.putDeviceId(myDevice.deviceId);
+    bleproxy.setCurrentDeviceId(myDevice.deviceId);
     sputil.putDevices(devices);
 
     //绑定成功后
@@ -427,10 +398,8 @@ Page({
 
   onLoad: function (options) {
     var that = this;
-    console.info('手机号 ' + sputil.getPhoneNumber());
     that.setData({
-      isEncrypt: sputil.isEncrypt(),
-      showGetPhoneNumberButton: sputil.getPhoneNumber() == ''
+      isEncrypt: sputil.isEncrypt()
     });
 
     if (wx.getUserProfile) {
@@ -495,6 +464,7 @@ Page({
           if (res.connected) {
             sputil.putDeviceMac(itemMac);
             sputil.putDeviceId(itemDeviceId);
+            bleproxy.setCurrentDeviceId(itemDeviceId);
             that.setData({
               mac: itemMac,
               deviceId: itemDeviceId,
@@ -605,7 +575,7 @@ Page({
     console.info('isSharedDevice=' + that.isSharedDevice() + ', isUserAvailable=' + app.isUserAvailable());
     var deviceState = '';
     if (value.length >= 12) {
-      let deviceType = sputil.getDeviceTypeById(deviceId); 
+      let deviceType = sputil.getDeviceTypeById(deviceId);
       console.info('设备类型', deviceType);
       if (that.isGanyingAvailable(deviceType)) {
         //激活用户绑定的设备，才处理感应功能的数据
@@ -751,6 +721,7 @@ Page({
       }
       sputil.putDeviceMac(mac)
       sputil.putDeviceId(deviceId)
+      bleproxy.setCurrentDeviceId(deviceId);
       sputil.putDevices(devices)
       that.setData({
         mac: mac,
@@ -810,21 +781,6 @@ Page({
 
 
   onShow: function () {
-    //状态栏颜色
-    wx.setNavigationBarColor({
-      frontColor: '#000000',
-      backgroundColor: '#ffffff',
-      animation: {
-        duration: 400,
-        timingFunc: 'easeIn'
-      }
-    });
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({
-        selected: 1,
-        bg_path: '/images/tab_settings_selected.png'
-      });
-    }
     //云数据库获取用户的设备
     console.info('userConsole.js onShow()');
     this.getDevicesFromCloud();
@@ -893,6 +849,7 @@ Page({
     setTimeout(function () {
       //设置一下标志，在收到上报的状态数据后再发送开感应的指令
       sputil.setSendEnableGanyingCmd(deviceId, true);
+      //const deviceNo = parseInt(myDevice.type.substring(3, 5), 16);
       if (app.globalData.platform == 'android') {
         console.info('android透传绑定成功，发起HID配对');
         //发起蓝牙HID配对，仅针对Android手机
@@ -1062,6 +1019,7 @@ Page({
     if (sputil.getDeviceMac() == mac) {
       sputil.putDeviceMac('')
       sputil.putDeviceId('')
+      bleproxy.setCurrentDeviceId('');
       bleproxy.disconnect(this.data.deviceId)
 
       this.setData({
@@ -1100,6 +1058,7 @@ Page({
               console.info('切换设备', item)
               sputil.putDeviceMac(item.mac)
               sputil.putDeviceId(item.deviceId)
+              bleproxy.setCurrentDeviceId(item.deviceId);
               that.setData({
                 mac: item.mac,
                 deviceId: item.deviceId,
@@ -1129,7 +1088,7 @@ Page({
   //根据设备类型判断是否支持“后台感应功能”
   isGanyingAvailable(device) {
     let deviceType = typeof(device) == 'string' ? device : device.type;
-    let num = util.deviceTypeNum(deviceType);
+    let num = util.getDeviceNum(deviceType);
     return num == 2 || num == 3 || num == 4 || num >= 8;
     //return deviceType == '+BA02' || deviceType == '+BA03' || deviceType == '+BA08' || deviceType == '+BA09'
   },
@@ -1239,7 +1198,7 @@ Page({
     let devices = sputil.getDevices();
     devices.forEach(element => {
       if (sputil.getDeviceMac() == element.mac) {
-        isShare = element.openids.indexOf(app.globalData.openid, 0) == -1;
+        isShare = element.openids && element.openids.indexOf(app.globalData.openid, 0) == -1;
       }
     });
     return isShare;
