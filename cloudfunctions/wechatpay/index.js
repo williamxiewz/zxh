@@ -11,12 +11,12 @@ exports.main = async (event, context) => {
   //文档：https://developers.weixin.qq.com/miniprogram/dev/wxcloud/reference-sdk-api/open/pay/CloudPay.unifiedOrder.html
   console.log('event=', event)
   const res = await cloud.cloudPay.unifiedOrder({
-    "body": "踏浪智控",/** 必填，不能给空字符串 */
+    "body": "众鑫汇智控",/** 必填，不能给空字符串 */
     "outTradeNo": generateMixed(28, 9),/**商户订单号 */
     "spbillCreateIp": "127.0.0.1",/**终端IP */
     "subMchId": "1606704502",
     "totalFee": 1800,/**总金额(单位：分) */
-    "envId": "cloud1-9gulotdwa1a40a52",/**结果通知回调云函数环境 */
+    "envId": "zxh-9g5pei38c7cdc56d",/**结果通知回调云函数环境 */
     "functionName": "paycallback",/**结果通知回调云函数名 */
     "nonceStr": generateMixed(32, 35),/**随机字符串，不长于32位。 */
     "tradeType": "JSAPI",

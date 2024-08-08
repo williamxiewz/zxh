@@ -10,6 +10,7 @@
   </mp-actionSheet>
 
   <scroll-view scroll-y="true" style="height: {{windowHeight}}px;">
+    <view class="userinfo" style="background:white;margin-top: 0px;"></view>
     <!-- 用户 openid -->
     <view class="userinfo" style="background:white;">
       <view class="userinfo-avatar" style="background-image: url({{avatarUrl}})"></view>
@@ -17,13 +18,15 @@
       <button wx:else open-type="getUserInfo" bindgetuserinfo="onGetUserInfo"
         class="userinfo-nickname">{{nickname}}</button>
       <view style="display:{{showJiHuoButton? 'block':'none'}};padding-top:10rpx;padding-right:60rpx;">
-        <button wx:if="{{showGetPhoneNumberButton}}" class="button_save" open-type="getPhoneNumber"
-          bindgetphonenumber="getPhoneNumber" style="width:180rpx;padding: 0px 0px;">激活</button>
-        <button wx:else class="button_save" bindtap="jiHuo" style="width:180rpx;padding: 0px 0px;">激活</button>
+        <button class="button_save" bindtap="jiHuo" style="width:180rpx;padding: 0px 0px;">激活</button>
       </view>
     </view>
 
     <view class="list">
+      <!-- <view class="container-h" style="align-items:center;justify-content:center;" bindtap="scanDevice">
+        <text class="request-text">搜索设备</text>
+        <icon type="search" size="32" />
+      </view> -->
       <view class="list-item">
         <text class="request-text">我的设备</text>
       </view>
@@ -32,7 +35,7 @@
           <view class="radio {{mac != '' && mac == item.mac? 'radio-checked':'radio-unchecked'}}" bindtap="addDevice"
             bindlongpress="removeDevice" data-item="{{item}}">
             <!-- <radio value="{{mac}}" checked="{{deviceIndex == item.index}}" /> -->
-            <view style="color:{{ item.deviceId=='' || item.connected? 'black':'#dddddd'}};">{{item.name}}
+            <view style="color:{{ item.name=='+' || item.connected? 'black':'#dddddd'}};">{{item.name}}
               {{item.version}}</view>
           </view>
         </label>
@@ -99,20 +102,34 @@
           </view>
         </view>
       </view>
+
+      <!-- 品牌LOGO设置 -->
+      <!-- <view class="list-item" bindtap="setLogo">
+        <view class="container-v">
+          <text class="request-text">品牌Logo设置</text>
+          <text style="font-size: 28rpx;line-height: 36rpx;">点击设置品牌Logo</text>
+        </view>
+      </view> -->
       <!-- 版本信息 -->
       <view class="list-item">
         <text class="request-text" style="flex:1;">版本信息</text>
-        <text class="request-text">V1.0.2</text>
+        <text class="request-text">V1.0.1</text>
       </view>
-      <!-- 客服 -->
-      <view class="list-item">
-        <button class="request-text" style="flex:1;" open-type="contact">联系客服</button>
-      </view>
-      <view style="height: 100rpx;width: 100%;">
-      </view>
+      <!-- test -->
+      <!-- <view class="list-item" bindtap="test">
+        <text class="request-text" style="flex:1;">测试XXX</text>
+      </view> -->
+      <!-- 测试加密算法 -->
+      <!-- <view class="list-item" style="align-items:center;">
+        <view class="container-v">
+          <text class="request-text">设置加密</text>
+          <text style="font-size: 28rpx;line-height: 36rpx;">选择后交互数据会被加密</text>
+        </view>
+        <view style="flex:1;"></view>
+        <switch type="checkbox" bindchange="onEncryptChange" checked="{{isEncrypt}}"></switch>
+      </view> -->
+
     </view>
-    <!-- <button bindtap="testPay">测试支付</button> -->
-    <!-- <button bindtap="test">测试</button> -->
   </scroll-view>
 
 </view>
