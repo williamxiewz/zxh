@@ -7,7 +7,8 @@ cloud.init({
 
 // 云函数入口函数
 exports.main = async (event, context) => {
-  console.info('myclouddb event =', event)
+  console.info('myclouddb event =', event);
+  //console.log('myclouddb context=', context);
   var res
   switch (event.action) {
     case 'getUser':
@@ -57,7 +58,7 @@ exports.main = async (event, context) => {
 //////////////////////////////////////////////////////////////////////////////
 
 async function addWXUserInfo(userInfo) {
-  const openid = cloud.getWXContext().OPENID
+  const openid = getOpenId();
   const db = cloud.database()
   var collection = db.collection('wx_userinfo')
 
@@ -90,7 +91,7 @@ async function addWXUserInfo(userInfo) {
 
 
 async function getWXUserInfo() {
-  const openid = cloud.getWXContext().OPENID
+  const openid = getOpenId();
   var collection = cloud.database().collection('wx_userinfo')
 
   var getRes = await collection.where({
@@ -99,16 +100,24 @@ async function getWXUserInfo() {
 
   console.log('getWXUserInfo', getRes)
 
-  if (getRes.data.length == 1) {
+  if (getRes.data.length >= 1) {
     return getRes.data[0]
   }
   return null
 }
 
 //////////////////////////////////////////////////////////////////////////////
+function getOpenId() {
+  let context = cloud.getWXContext();
+  if(context.FROM_OPENID) {
+    //调用来源方小程序/公众号用户 openid，跨账号调用时有
+    return context.FROM_OPENID;
+  }
+  return context.OPENID;
+}
 
 async function getUser() {
-  const openid = cloud.getWXContext().OPENID
+  const openid = getOpenId();
   var collection = cloud.database().collection('my_users')
 
   var getRes = await collection.where({
@@ -174,7 +183,7 @@ async function updateUser(user) {
 
 //获取当前用户的设备
 async function getDevices() {
-  const openid = cloud.getWXContext().OPENID
+  const openid = getOpenId();
   const _ = cloud.database().command
   var collection = cloud.database().collection('my_devices')
 
@@ -237,7 +246,7 @@ async function getDevices() {
 
 //设备是否已经被其他用户绑定
 async function bindDevice(myDevice) {
-  const openid = cloud.getWXContext().OPENID
+  const openid = getOpenId();
 
   console.info('getDevices openid', openid)
 
@@ -281,12 +290,32 @@ async function bindDevice(myDevice) {
 
   } else if (getRes.data[0].openids.indexOf(openid, 0) != -1) {
     //当前用户已经绑定该设备
+    //更新设备信息
+    let updateDeviceRes = await collection.doc(getRes.data[0]._id).update({
+      data: {
+        name: myDevice.name,
+        type: myDevice.type,
+        version: myDevice.version
+      }
+    });
+    console.info('更新设备信息', updateDeviceRes);
+
     result = {
       code: 1,
       msg: '已经绑定该设备'
     }
   } else {
     //该设备已被其他用户绑定
+    //更新设备信息
+    let updateDeviceRes = await collection.doc(getRes.data[0]._id).update({
+      data: {
+        name: myDevice.name,
+        type: myDevice.type,
+        version: myDevice.version
+      }
+    });
+    console.info('更新设备信息', updateDeviceRes);
+
     //result = { code: 2, msg: '该设备已被其他用户绑定' }
     let deviceInfo = getRes.data[0]
     deviceInfo.openids.push(openid)
@@ -319,7 +348,7 @@ async function bindDevice(myDevice) {
 //////////////////////////////////////////////////////////////////////////////
 //删除设备
 async function delDevice(myDevice) {
-  const openid = cloud.getWXContext().OPENID
+  const openid = getOpenId();
   var result = {}
   var collection = cloud.database().collection('my_devices')
 
@@ -356,7 +385,7 @@ async function delDevice(myDevice) {
 
 async function delDevice2(myDevice) {
   var result = {}
-  if (myDevice.openid == cloud.getWXContext().OPENID) {
+  if (myDevice.openid == getOpenId()) {
     //设备绑定的用户删除设备
     var collection = cloud.database().collection('my_devices')
     const removeRes = await collection.where({
@@ -382,7 +411,7 @@ async function delDevice2(myDevice) {
 //////////////////////////////////////////////////////////////////////////////
 
 async function addDeviceByQRCode(qrcode, platform) {
-  const openid = cloud.getWXContext().OPENID
+  const openid = getOpenId();
   //借车码: MAC + 日期 + 随机字符串
   const mac = qrcode.substring(0, 12)
   // const date = qrcode.substring(12, 20)

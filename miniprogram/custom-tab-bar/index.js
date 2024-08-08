@@ -1,8 +1,11 @@
+const app = getApp();
+
 Component({
   data: {
+    height:app.globalData.tabbarheight, // 获取微信小程序底部实际高度 解决底部空白
     selected: 0,
-    color: "#BBBBBB",
-    selectedColor: "#fa3d10",
+    color: "#5EDCF2",
+    selectedColor: "#5EDCF2",
     list: [{
       pagePath: "/pages/index/index",
       iconPath: "/images/tab_ctrl.png",
@@ -18,6 +21,12 @@ Component({
   attached() {
   },
   methods: {
+    onLoad: function() {
+      this.setData({
+        height:app.globalData.tabbarheight  
+      })
+    },
+
     switchTab(e) {
       const data = e.currentTarget.dataset
       const url = data.path

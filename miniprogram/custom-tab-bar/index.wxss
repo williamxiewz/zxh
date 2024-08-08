@@ -3,20 +3,12 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 48px;
-  background:rgb(236, 245, 255);
-  display: flex;
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.tab-bar-border {
-  background-color: rgba(0, 0, 0, 0.33);
-  position: absolute;
-  left: 0;
-  top: 0;
+  padding: 10px 0px;
   width: 100%;
-  height: 1px;
-  transform: scaleY(0.5);
+  height: 80px;
+  display: flex;
+  background-color: white;
+  /* padding-bottom: env(safe-area-inset-bottom); */
 }
 
 .tab-bar-bg {
@@ -24,8 +16,10 @@
   bottom: 0;
   left: 0;
   right: 0;
-  width: 100%;
-  height: 54px;
+  margin-left: 2%;
+  margin-bottom: 10px;
+  width: 96%;
+  height: 60px;
 }
 
 .tab-bar-item {
@@ -38,10 +32,10 @@
 }
 
 .tab-bar-item cover-image {
-  width: 25px;
-  height: 25px;
+  width: 100%;
+  height: 42px;
 }
 
 .tab-bar-item cover-view {
-  font-size: 12px;
+  font-size: 10px;
 }

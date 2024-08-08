@@ -15,18 +15,21 @@ const addDeviceId = (deviceId) => {
   }
 }
 
-const isConnected = (str) => {
+const isConnected = (deviceId) => {
   for (var i = 0; i < connectedIdArr.length; i++) {
-    if (connectedIdArr[i] == str) {
+    if (connectedIdArr[i] == deviceId) {
       return true;
     }
   }
   return false;
 }
 
-//关闭手机蓝牙的时候调用
-const removeAllDeviceIds =()=>{
-  connectedIdArr.length = 0;
+//关闭手机蓝牙时调用
+const removeAllDeviceIds = () => {
+  // connectedIdArr.forEach((item, index, arr) => {
+  //   disconnect(item);
+  // });
+  connectedIdArr.length = 0;//清空数组
 }
 
 const removeDeviceId = (str) => {
@@ -69,6 +72,7 @@ const stopLeScan = () => {
     scanTimerId = -1
   }
 
+  console.warn("停止扫描蓝牙");
   wx.stopBluetoothDevicesDiscovery({
     success: function (res) {
       console.log("stopBluetoothDevicesDiscovery success", res);
@@ -81,10 +85,10 @@ const stopLeScan = () => {
 
 const sendToConnectedDevices = (value, isWriteCharacteristic = false) => {
   connectedIdArr.forEach(deviceId => {
-    if(isWriteCharacteristic) {  
-      writeBLECharacteristic(deviceId, value, false);  
-    } else {  
-      send(deviceId, value, false);  
+    if(isWriteCharacteristic) {
+      writeBLECharacteristic(deviceId, value, false);
+    } else {
+      send(deviceId, value, false);
     }
   });
 }
@@ -362,12 +366,12 @@ module.exports = {
   connect: connect,
   send: send,
   sendToConnectedDevices: sendToConnectedDevices,
+  writeBLECharacteristic : writeBLECharacteristic,
   disconnect: disconnect,
   addDeviceId: addDeviceId,
   removeDeviceId: removeDeviceId,
   removeAllDeviceIds: removeAllDeviceIds,
   isConnected: isConnected,
   close: close,
-  showModal: showModal,
-  writeBLECharacteristic: writeBLECharacteristic
+  showModal: showModal
 }
