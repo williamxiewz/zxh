@@ -5,8 +5,18 @@ const sputil = require('/sputil.js')
 const bledata = require('/bledata.js')
 const log = require('/log.js')
 
+var currentDeviceId = '';
+
+const getCurrentDeviceId = () => {
+  return currentDeviceId;
+}
+
+const setCurrentDeviceId = (deviceId) => {
+  currentDeviceId = deviceId;
+}
+
 //已连接的设备id
-const connectedIdArr = []
+const connectedIdArr = [];
 
 const addDeviceId = (deviceId) => {
   if (!isConnected(deviceId)) {
@@ -24,9 +34,12 @@ const isConnected = (str) => {
   return false;
 }
 
-//关闭手机蓝牙的时候调用
-const removeAllDeviceIds =()=>{
-  connectedIdArr.length = 0;
+//关闭手机蓝牙时调用
+const removeAllDeviceIds = () => {
+  // connectedIdArr.forEach((item, index, arr) => {
+  //   disconnect(item);
+  // });
+  connectedIdArr.length = 0; //清空数组
 }
 
 const removeDeviceId = (str) => {
@@ -81,10 +94,10 @@ const stopLeScan = () => {
 
 const sendToConnectedDevices = (value, isWriteCharacteristic = false) => {
   connectedIdArr.forEach(deviceId => {
-    if(isWriteCharacteristic) {  
-      writeBLECharacteristic(deviceId, value, false);  
-    } else {  
-      send(deviceId, value, false);  
+    if (isWriteCharacteristic) {
+      writeBLECharacteristic(deviceId, value, false);
+    } else {
+      send(deviceId, value, false);
     }
   });
 }
@@ -133,7 +146,7 @@ const connect = (deviceId) => {
     console.warn('bleproxy.js connect() >>> deviceId无效 ' + deviceId);
     return;
   }
-  if(!bluetoothAvailable) {
+  if (!bluetoothAvailable) {
     console.warn('bleproxy.js connect() >>> 蓝牙没打开，无法连接 ' + deviceId);
     return;
   }
@@ -274,7 +287,7 @@ const initBluetooth = () => {
               if (result.available) {
                 //蓝牙可用，开启扫描
                 if (locationEnabled) {
-                  if(locationAuthorized) {
+                  if (locationAuthorized) {
                     startLeScan(true)
                   } else {
                     wx.showModal({
@@ -369,5 +382,7 @@ module.exports = {
   isConnected: isConnected,
   close: close,
   showModal: showModal,
-  writeBLECharacteristic: writeBLECharacteristic
+  writeBLECharacteristic: writeBLECharacteristic,
+  setCurrentDeviceId: setCurrentDeviceId,
+  getCurrentDeviceId: getCurrentDeviceId
 }

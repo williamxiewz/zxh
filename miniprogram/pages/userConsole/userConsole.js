@@ -88,7 +88,6 @@ Page({
     isEncrypt: false, //是否加密蓝牙交互数据
     myDevice: null, //临时连接的设备
     showJiHuoButton: false, //是否显示 “激活” 按钮
-    showGetPhoneNumberButton: true,
     showActionsheet: false,
     groups: [{
         text: '微信支付',
@@ -125,36 +124,6 @@ Page({
 
   testPay(e) {
     this.pay();
-  },
-
-  getPhoneNumber(e) {
-    console.log('getPhoneNumber', e)
-    var that = this;
-    var cloudIDType = typeof (e.detail.cloudID);
-    if (cloudIDType != 'string') {
-      console.error('getPhoneNumber() - cloudIDType=' + cloudIDType)
-      return;
-    }
-    dbutil.cloud.callFunction({
-      name: 'openapi',
-      data: {
-        action: 'getOpenData',
-        openData: {
-          list: [
-            e.detail.cloudID,
-          ]
-        }
-      }
-    }).then(res => {
-      console.log('[getPhoneNumber] 调用成功：', res);
-      let phoneNumber = res.result.list[0].data.phoneNumber;
-      console.info("获得手机号", phoneNumber);
-      sputil.putPhoneNumber(phoneNumber);
-      that.setData({
-        showGetPhoneNumberButton: false
-      });
-      that.jiHuo();
-    }).catch(console.error);
   },
 
   showPairDeviceDialog: function () {
@@ -264,6 +233,7 @@ Page({
 
     sputil.putDeviceMac(myDevice.mac);
     sputil.putDeviceId(myDevice.deviceId);
+    bleproxy.setCurrentDeviceId(myDevice.deviceId);
     sputil.putDevices(devices);
 
     //绑定成功后
@@ -424,13 +394,10 @@ Page({
     })
   },
 
-
   onLoad: function (options) {
     var that = this;
-    console.info('手机号 ' + sputil.getPhoneNumber());
     that.setData({
-      isEncrypt: sputil.isEncrypt(),
-      showGetPhoneNumberButton: sputil.getPhoneNumber() == ''
+      isEncrypt: sputil.isEncrypt()
     });
 
     if (wx.getUserProfile) {
@@ -487,14 +454,18 @@ Page({
       for (var i = 0; i < devices.length; i++) {
         let itemMac = devices[i].mac
         //由于iOS的MAC跟deviceId不一样，这里通过MAC获取deviceId作比较
-        if (sputil.getDeviceIdByMac(itemMac) == res.deviceId) {
-          let itemDeviceId = res.deviceId
+        let itemDeviceId = sputil.getDeviceIdByMac(itemMac);
+        if(!itemDeviceId) {
+          itemDeviceId = util.mac2DeviceId(itemMac);
+        }
+        if (itemDeviceId == res.deviceId) {
           devices[i].connected = res.connected;
           devices[i].deviceId = itemDeviceId;
           //自动选中最新连接的设备
           if (res.connected) {
             sputil.putDeviceMac(itemMac);
             sputil.putDeviceId(itemDeviceId);
+            bleproxy.setCurrentDeviceId(itemDeviceId);
             that.setData({
               mac: itemMac,
               deviceId: itemDeviceId,
@@ -722,6 +693,7 @@ Page({
           devices[i] = res.result[i]
           devices[i].deviceId = deviceId
           devices[i].connected = bleproxy.isConnected(deviceId)
+          console.error('devices[i].connected=' + devices[i].connected);
         }
       }
 
@@ -733,7 +705,11 @@ Page({
         console.log(element)
         let tempMac = element.mac
         let tempDeviceId = sputil.getDeviceIdByMac(tempMac)
+        if(!tempDeviceId) {
+          tempDeviceId = util.mac2DeviceId(element.mac);
+        }
         element.connected = bleproxy.isConnected(tempDeviceId)
+        console.error('element.connected=' + element.connected);
         if (tempMac != '' && tempMac == sputil.getDeviceMac()) {
           mac = tempMac
           deviceId = tempDeviceId
@@ -749,9 +725,10 @@ Page({
           ganyingAvailable = that.isGanyingAvailable(devices[0]);
         }
       }
-      sputil.putDeviceMac(mac)
-      sputil.putDeviceId(deviceId)
-      sputil.putDevices(devices)
+      sputil.putDeviceMac(mac);
+      sputil.putDeviceId(deviceId);
+      bleproxy.setCurrentDeviceId(deviceId);
+      sputil.putDevices(devices);
       that.setData({
         mac: mac,
         devices: devices,
@@ -1062,6 +1039,7 @@ Page({
     if (sputil.getDeviceMac() == mac) {
       sputil.putDeviceMac('')
       sputil.putDeviceId('')
+      bleproxy.setCurrentDeviceId('');
       bleproxy.disconnect(this.data.deviceId)
 
       this.setData({
@@ -1090,16 +1068,17 @@ Page({
               showCancel: false
             })
           } else {
-            var item = e.currentTarget.dataset.item
+            var item = e.currentTarget.dataset.item;
 
             if (item.mac == '') {
-              console.info('addDevice', item)
-              that.showPairDeviceDialog()
+              console.info('addDevice', item);
+              that.showPairDeviceDialog();
             } else {
               //切换设备
-              console.info('切换设备', item)
-              sputil.putDeviceMac(item.mac)
-              sputil.putDeviceId(item.deviceId)
+              console.info('切换设备', item);
+              sputil.putDeviceMac(item.mac);
+              sputil.putDeviceId(item.deviceId);
+              bleproxy.setCurrentDeviceId(item.deviceId);
               that.setData({
                 mac: item.mac,
                 deviceId: item.deviceId,

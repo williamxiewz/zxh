@@ -153,7 +153,7 @@ const getCurrentDate = () => {
 const uint8ToHex = (byte) => {
   return HEX[(byte >> 4) & 0xf] + HEX[byte & 0xf];
 }
-//mac是广播中的，与实际MAC字节序相反，本方法主要用于分享给Android系统的设备连接
+//mac是广播中的，与实际MAC字节序相同，本方法主要用于分享给Android系统的设备连接
 const mac2DeviceId = (mac) => {
   if (mac.match(/[0-9A-Fa-f]{12}/)) {
     let arr = new Uint8Array(hex2array(mac));
@@ -188,8 +188,8 @@ const isCall = (device) => {
   if(!device) {
     return true;
   }
-  // XL2 是“开座包”，其他是“寻车”
-  return device.name.indexOf('XL2') == -1;
+  // XS2 是“开座包”，其他是“寻车”
+  return device.name.indexOf("XS2") == -1;
 }
 
 module.exports = {
