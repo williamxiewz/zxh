@@ -9,7 +9,7 @@
   <mp-actionSheet bindactiontap="btnClick" show="{{showActionsheet}}" actions="{{groups}}" title="请选择激活方式">
   </mp-actionSheet>
 
-  <scroll-view scroll-y="true" style="height: {{windowHeight}}px;">
+  <scroll-view scroll-y="true" style="width: 100%;height: 100%;">
     <!-- 用户 openid -->
     <view class="userinfo" style="background:white;">
       <view class="userinfo-avatar" style="background-image: url({{avatarUrl}})"></view>
@@ -17,9 +17,7 @@
       <button wx:else open-type="getUserInfo" bindgetuserinfo="onGetUserInfo"
         class="userinfo-nickname">{{nickname}}</button>
       <view style="display:{{showJiHuoButton? 'block':'none'}};padding-top:10rpx;padding-right:60rpx;">
-        <button wx:if="{{showGetPhoneNumberButton}}" class="button_save" open-type="getPhoneNumber"
-          bindgetphonenumber="getPhoneNumber" style="width:180rpx;padding: 0px 0px;">激活</button>
-        <button wx:else class="button_save" bindtap="jiHuo" style="width:180rpx;padding: 0px 0px;">激活</button>
+        <button class="button_save" bindtap="jiHuo" style="width:180rpx;padding: 0px 0px;">激活</button>
       </view>
     </view>
 
@@ -31,8 +29,7 @@
         <label wx:for="{{devices}}" wx:key="{{item.index}}">
           <view class="radio {{mac != '' && mac == item.mac? 'radio-checked':'radio-unchecked'}}" bindtap="addDevice"
             bindlongpress="removeDevice" data-item="{{item}}">
-            <!-- <radio value="{{mac}}" checked="{{deviceIndex == item.index}}" /> -->
-            <view style="color:{{ item.deviceId=='' || item.connected? 'black':'#dddddd'}};">{{item.name}}
+            <view style="color:{{ item.name=='+' || item.connected? 'black':'#dddddd'}};">{{item.name}}
               {{item.version}}</view>
           </view>
         </label>
@@ -99,20 +96,20 @@
           </view>
         </view>
       </view>
+
       <!-- 版本信息 -->
       <view class="list-item">
         <text class="request-text" style="flex:1;">版本信息</text>
-        <text class="request-text">V1.0.2</text>
+        <text class="request-text">V1.0.3</text>
       </view>
       <!-- 客服 -->
       <view class="list-item">
         <button class="request-text" style="flex:1;" open-type="contact">联系客服</button>
       </view>
-      <view style="height: 100rpx;width: 100%;">
-      </view>
-    </view>
-    <!-- <button bindtap="testPay">测试支付</button> -->
-    <!-- <button bindtap="test">测试</button> -->
-  </scroll-view>
 
+      <!-- test -->
+      <!-- <button bindtap="pay" type="primary">测试支付</button> -->
+      <view style="width: 100%;height: 164rpx;"></view>
+    </view>
+  </scroll-view>
 </view>

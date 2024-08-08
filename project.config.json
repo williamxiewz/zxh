@@ -29,7 +29,7 @@
       "outputPath": ""
     },
     "enableEngineNative": false,
-    "useIsolateContext": false,
+    "useIsolateContext": true,
     "userConfirmedBundleSwitch": false,
     "packNpmManually": false,
     "packNpmRelationList": [],
@@ -41,8 +41,8 @@
     "ignoreUploadUnusedFiles": true,
     "condition": false
   },
-  "appid": "wx5973b4d79e2bf5ed",
-  "projectname": "zhongxinhui",
+  "appid": "wx2a456360643bf914",
+  "projectname": "xuanyuan",
   "libVersion": "2.15.0",
   "condition": {
     "miniprogram": {

@@ -5,6 +5,23 @@ const sputil = require('/sputil.js')
 const bledata = require('/bledata.js')
 const log = require('/log.js')
 
+var currentDeviceId = '';
+
+const setCurrentDeviceId = (deviceId) => {
+  currentDeviceId = deviceId;
+}
+const getCurrentDeviceId = () => {
+  return currentDeviceId;
+}
+
+//关闭手机蓝牙时调用
+const removeAllDeviceIds = () => {
+  // connectedIdArr.forEach((item, index, arr) => {
+  //   disconnect(item);
+  // });
+  connectedIdArr.length = 0; //清空数组
+}
+
 //已连接的设备id
 const connectedIdArr = []
 
@@ -22,11 +39,6 @@ const isConnected = (str) => {
     }
   }
   return false;
-}
-
-//关闭手机蓝牙的时候调用
-const removeAllDeviceIds =()=>{
-  connectedIdArr.length = 0;
 }
 
 const removeDeviceId = (str) => {
@@ -79,20 +91,17 @@ const stopLeScan = () => {
   })
 }
 
-const sendToConnectedDevices = (value, isWriteCharacteristic = false) => {
+const sendToConnectedDevices = (value) => {
   connectedIdArr.forEach(deviceId => {
-    if(isWriteCharacteristic) {  
-      writeBLECharacteristic(deviceId, value, false);  
-    } else {  
-      send(deviceId, value, false);  
-    }
+    send(deviceId, value, false)
   });
+
 }
 
 const send = (deviceId, value, showToast = false) => {
   if (sputil.isEncrypt()) {
     bledata.encryptPayload(value, function (res) {
-      console.info('send() - 数据加密结果', res)
+      // console.info('send() - 数据加密结果', res)
       let value = util.hex2array(res.result.value)
       writeBLECharacteristic(deviceId, value, showToast)
     })
@@ -133,7 +142,7 @@ const connect = (deviceId) => {
     console.warn('bleproxy.js connect() >>> deviceId无效 ' + deviceId);
     return;
   }
-  if(!bluetoothAvailable) {
+  if (!bluetoothAvailable) {
     console.warn('bleproxy.js connect() >>> 蓝牙没打开，无法连接 ' + deviceId);
     return;
   }
@@ -259,7 +268,6 @@ const initBluetooth = () => {
       //////////////////////////////////////
       const platform = result.platform
       const locationEnabled = result.locationEnabled
-      const locationAuthorized = result.locationAuthorized
       wx.openBluetoothAdapter({
         mode: 'central',
         success: (res) => {
@@ -274,16 +282,7 @@ const initBluetooth = () => {
               if (result.available) {
                 //蓝牙可用，开启扫描
                 if (locationEnabled) {
-                  if(locationAuthorized) {
-                    startLeScan(true)
-                  } else {
-                    wx.showModal({
-                      title: '提示',
-                      content: '扫描蓝牙设备需要微信获得定位权限，建议您在系统设置里允许微信使用位置信息后重新进入小程序',
-                      confirmText: '好的',
-                      showCancel: false
-                    })
-                  }
+                  startLeScan(true)
                 } else {
                   wx.showModal({
                     title: '提示',
@@ -292,6 +291,7 @@ const initBluetooth = () => {
                     showCancel: false
                   })
                 }
+
               } else {
                 showModal()
               }
@@ -365,9 +365,11 @@ module.exports = {
   disconnect: disconnect,
   addDeviceId: addDeviceId,
   removeDeviceId: removeDeviceId,
-  removeAllDeviceIds: removeAllDeviceIds,
   isConnected: isConnected,
   close: close,
   showModal: showModal,
-  writeBLECharacteristic: writeBLECharacteristic
+  writeBLECharacteristic: writeBLECharacteristic,
+  setCurrentDeviceId: setCurrentDeviceId,
+  getCurrentDeviceId: getCurrentDeviceId,
+  removeAllDeviceIds: removeAllDeviceIds
 }

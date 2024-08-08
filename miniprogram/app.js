@@ -5,22 +5,15 @@ const sputil = require('/utils/sputil.js')
 const dbutil = require('/utils/dbutil.js')
 const util = require('/utils/util.js')
 const log = require('/utils/log.js')
-const bledata = require('/utils/bledata.js')
 const httputil = require('/utils/httputil.js')
+const zxh = require('/utils/zxh.js')
 
-//测试设备
-const DEVICE_MACS = [
-  '2B021DD25B4C',
-  '2B001DDD2F6B',
-  '2B0D1DD81D1F'
-]
 //正则表达式匹配设备类型
-const TYPE_PATTERN = /^[_+]BA[A-F\d][\d]$/;
+const TYPE_PATTERN = /^[_+]BA[\d]{2}$/;
 
 App({
   onLaunch: function () {
-    DEVICE_MACS.forEach(e => util.mac2DeviceId(e));
-
+    util.mac2DeviceId("2B021DD25B4C");
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力')
     } else {
@@ -29,7 +22,7 @@ App({
         //   env 参数决定接下来小程序发起的云开发调用（wx.cloud.xxx）会默认请求到哪个云环境的资源
         //   此处请填入环境 ID, 环境 ID 可打开云控制台查看
         //   如不填则使用默认环境（第一个创建的环境）
-        //env: 'cloud1-9gulotdwa1a40a52',
+        // env: 'cloud1-4grd9k53c894fce3',
         env: 'zxh-9g5pei38c7cdc56d',
         traceUser: true,
       });
@@ -80,31 +73,31 @@ App({
       //console.info('##############', result.devices.length)
       for (var i = 0; i < result.devices.length; i++) {
         let device = result.devices[i];
-        if (!device.advertisData) {
+        // console.log(`localName=${device.localName}, deviceId=${device.deviceId} `);
+        if(!device.advertisData) {
           continue;
         }
-        let dataLength = device.advertisData.byteLength;
-        // console.log(`${device.localName} ######## dataLength=${dataLength}`);
-        if (dataLength != 17 && dataLength != 19) {
-          continue;
+        let mfrLength = device.advertisData.byteLength;
+        // console.log('advertisData.byteLength=' + mfrLength);
+        if (mfrLength != 17 && mfrLength != 19) {
+          continue
         }
-        let pos = 0;
-        if (dataLength == 19 && device.advertisData[0] == 0xff && device.advertisData[1] == 0xff) {
-          pos += 2;
+        let mfrBuffer = new Uint8Array(device.advertisData);
+        let start = 0;
+        if(mfrLength == 19 && mfrBuffer[0] == 0xff && mfrBuffer[1] == 0xff) {
+          start += 2;
         }
-        let mfrHead = util.arrayBufferToString(device.advertisData.slice(pos, pos + 3));
-        pos += 3;
-        let mac = util.array2hex(device.advertisData.slice(pos, pos + 6), false);
-        pos += 6;
-        let deviceType = util.arrayBufferToString(device.advertisData.slice(pos, pos + 5));
-        pos += 5;
-        let version = util.arrayBufferToString(device.advertisData.slice(pos, pos + 3));
+        let mfrHead = util.arrayBufferToString(device.advertisData.slice(start, start + 3));
+        start += 3;
+        let mac = util.array2hex(device.advertisData.slice(start, start + 6), false);
+        start += 6;
+        let deviceType = util.arrayBufferToString(device.advertisData.slice(start, start + 5));
+        start += 5;
+        let version = util.arrayBufferToString(device.advertisData.slice(start, start + 3));
 
-        // console.info('### BLE Manufacturer Data:', mfrHead + ' ' + mac + ' ' + deviceType + version);
+        //console.info('### BLE Manufacturer Data:', mfrHead + ' ' + mac + ' ' + deviceType + version)
 
-        if ((mfrHead == 'XL1' || mfrHead == 'XL2' || DEVICE_MACS.indexOf(mac) != -1) && TYPE_PATTERN.test(deviceType)) {
-          let num = parseInt(deviceType.substring(3, 5), 16);
-          if (num == 5 || num == 6 || num == 0xA5 || num == 0xA6) continue;
+        if ((mfrHead == 'XY1' || mfrHead == 'XY2' || mac == '2B021DD25B4C') && TYPE_PATTERN.test(deviceType)) {
           //成对存储 deviceId 与 MAC
           sputil.putDeviceIdAndMac(device.deviceId, mac);
           sputil.putDeviceType(device.deviceId, deviceType);
@@ -138,14 +131,13 @@ App({
             //console.info('myDevice', myDevice);
             onfire.fire('onBluetoothDeviceFound_userConsole', myDevice);
           }
-
         }
       }
-    })
+    });
 
     //监听网络状态
     wx.onNetworkStatusChange((result) => {
-      console.log('网络状态变化', result);
+      // console.log('网络状态变化', result);
       this.globalData.isNetworkOn = result.isConnected;
     });
 
@@ -159,24 +151,17 @@ App({
 
   onShow: async function () {
     var that = this;
-    console.log('app.js onShow() - getUser()');
-    if (!dbutil.isInit()) {
-      await dbutil.initCloud();
-      bledata.encryptPayload(bledata.queryState(), function (res) {
-        console.info('app.js onShow() - 查询状态的数据加密结果', res);
-        that.globalData.queryValue = util.hex2array(res.result.value);
-      });
+    if (!zxh.isInit()) {
+      await zxh.initCloud();
     }
-    //
-    console.log('dbutil.getCloud() =', dbutil.getCloud());
-    await dbutil.getUser(function (res) {
+    // 
+    //bleproxy.startLeScan(true)
+    that.getOpenid();
+    dbutil.getUser(function (res) {
       console.log('getUser', res);
       that.globalData.myuser = res.result;
-      sputil.setPaySuccess(res.result.is_vip);
+      // sputil.setPaySuccess(res.result.is_vip);
     });
-    that.getOpenid();
-    //bleproxy.initBluetooth();
-    this.checkBluetoothPermission();
     //获取网络状态
     wx.getNetworkType({
       success: (result) => {
@@ -191,12 +176,10 @@ App({
 
     onfire.fire('onAppHide_index', {
       hidden: false
-    });
-    this.globalData.appHidden = false;
-
-    if(!sputil.getDevices()) {
-      this.getDevicesFromCloud();
-    }
+    })
+    this.globalData.appHidden = false
+    //检查蓝牙权限
+    this.checkBluetoothPermission();
   },
 
   checkBluetoothPermission() {
@@ -212,7 +195,6 @@ App({
           wx.authorize({
             scope: "scope.bluetooth",
             success() {
-              //用户允许使用蓝牙
               bleproxy.initBluetooth();
             }
           });
@@ -247,14 +229,41 @@ App({
   },
 
 
-  getOpenid: async function () {
+  getOpenid: function () {
     var that = this
     // 调用云函数
-    dbutil.getOpenid((res) => {
-      that.globalData.openid = res.result.openid;
-      console.log('app.js 获得openid:', that.globalData.openid);
-    });
+    zxh.cloud().callFunction({
+      name: 'login',
+      data: {},
+      success: res => {
+        that.globalData.openid = res.result.openid
+        console.log('app.js 获得openid:', that.globalData.openid)
+        httputil.checkUser({
+          openid: res.result.openid,
+          success: (res2) => {
+            // console.info('查询是否激活', res2);
+            if (res2.data.code == 0) {
+              if (res2.data.data.length > 0) {
+                if (res2.data.data[0].open_id == res.result.openid) {
+                  console.info('账号已激活');
+                  that.globalData.isActivated = true;
+                }
+              }
+            } else {
+              that.globalData.isActivated = false;
+            }
+          },
+          fail: (err2) => {
+            // console.error('查询是否激活', err2);
+          }
+        });
+      },
+      fail: err => {
+        console.error('[云函数] [login] 调用失败', err)
+      }
+    })
   },
+
 
   isUserAvailable() {
     const device = sputil.getSelectedDevice();
@@ -273,88 +282,14 @@ App({
       var isVip = this.globalData.myuser.hasOwnProperty('is_vip') && this.globalData.myuser.is_vip;
       return isVip || this.globalData.isActivated;
     }
-    return false;
+    return true; //本应用不收费
   },
 
   //免费型号
   isFreeDevice(device) {
-    console.info('isFreeDevice() - device =', device);
     if (device.type == '') return true;
-    let num = util.deviceTypeNum(device.type);
-    // if(num == 4) {
-    //   return false;// BA04 是付费版本，带感应功能
-    // }
-    return num >= 7;
-  },
-
-  getDevicesFromCloud() {
-    dbutil.getDevices(res => {
-      console.info('index.js 云端设备：', res);
-      var devices = [{
-          type: '',
-          deviceId: '',
-          mac: '',
-          name: '+',
-          version: '',
-          connected: false
-        },
-        {
-          type: '',
-          deviceId: '',
-          mac: '',
-          name: '+',
-          version: '',
-          connected: false
-        },
-        {
-          type: '',
-          deviceId: '',
-          mac: '',
-          name: '+',
-          version: '',
-          connected: false
-        }
-      ]
-
-      for (var i = 0; i < devices.length; i++) {
-        if (i < res.result.length) {
-          let deviceId = sputil.getDeviceIdByMac(res.result[i].mac)
-          devices[i] = res.result[i]
-          devices[i].deviceId = deviceId
-          devices[i].connected = bleproxy.isConnected(deviceId)
-        }
-      }
-
-      ///
-      var mac = ''
-      var deviceId = ''
-      devices.forEach(element => {
-        console.log(element)
-        let tempMac = element.mac
-        let tempDeviceId = sputil.getDeviceIdByMac(tempMac)
-        element.connected = bleproxy.isConnected(tempDeviceId)
-        if (tempMac != '' && tempMac == sputil.getDeviceMac()) {
-          mac = tempMac
-          deviceId = tempDeviceId
-        }
-      })
-
-      //默认选中第一个
-      if (mac == '' || deviceId == '') {
-        if (devices[0].mac != '') {
-          mac = devices[0].mac;
-          deviceId = devices[0].deviceId;
-          if (!deviceId) {
-            deviceId = util.mac2DeviceId(mac); //仅限android系统
-          }
-        }
-      }
-      sputil.putDeviceMac(mac);
-      sputil.putDeviceId(deviceId);
-      sputil.putDevices(devices);
-      /////
-    });
-    //////
+    const num = util.getDeviceNum(device.type);
+    return num < 2 || num >= 7;
   },
 
   globalData: {

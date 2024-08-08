@@ -1,7 +1,7 @@
 const util = require("./util")
 const sputil = require('./sputil')
 const log = require("./log")
-const dbutil = require("./dbutil")
+const zxh = require("./zxh")
 
 const CMD_LOCK = 1 //设防
 const CMD_UNLOCK = 2 //撤防
@@ -57,7 +57,7 @@ const queryState = () => {
   util.arraycopy(selfIdArr, 0, value, 0, 4); //4个字节的随机数
   //Math.floor(Math.random() * 256)
 
-  log.i('device type=' + type);
+  // log.i('device type=' + type);
   if (isBA02) {
     value[6] = 0x02; //设备类型：小程序发送0x02，设备发0x82
     value[12] = 0x00;
@@ -68,13 +68,14 @@ const queryState = () => {
   value[9] = 0; //限速开关(1/0)
   value[10] = 0; //限速提示音量
   value[11] = 0; //功能码
-  log.i('查询状态 >>> ' + util.array2hex(value.buffer));
+  // log.i('查询状态 >>> ' + util.array2hex(value.buffer));
   return value.buffer;
 }
 
 //value 是 ArrayBuffer 类型
 const encryptPayload = (value, complete) => {
-  dbutil.getCloud().callFunction({
+  if(!zxh.isInit()) return;
+  zxh.cloud().callFunction({
     name: 'echo',
     data: {
       action: 'encrypt',
@@ -86,7 +87,7 @@ const encryptPayload = (value, complete) => {
 
 //value 是 ArrayBuffer 类型
 const decryptPayload = (value, complete) => {
-  dbutil.getCloud().callFunction({
+  zxh.cloud().callFunction({
     name: 'echo',
     data: {
       action: 'decrypt',
