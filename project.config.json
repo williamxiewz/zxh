@@ -21,15 +21,12 @@
     "compileHotReLoad": false,
     "lazyloadPlaceholderEnable": false,
     "useMultiFrameRuntime": true,
-    "useApiHook": true,
-    "useApiHostProcess": true,
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],
       "outputPath": ""
     },
-    "enableEngineNative": false,
-    "useIsolateContext": false,
+    "useIsolateContext": true,
     "userConfirmedBundleSwitch": false,
     "packNpmManually": false,
     "packNpmRelationList": [],
@@ -41,9 +38,6 @@
     "ignoreUploadUnusedFiles": true,
     "condition": false
   },
-  "appid": "wx5973b4d79e2bf5ed",
-  "projectname": "zhongxinhui",
-  "libVersion": "2.15.0",
   "condition": {
     "miniprogram": {
       "list": [
@@ -57,12 +51,15 @@
   },
   "compileType": "miniprogram",
   "srcMiniprogramRoot": "miniprogram/",
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  },
+  "libVersion": "2.15.0",
   "packOptions": {
     "ignore": [],
     "include": []
   },
-  "editorSetting": {
-    "tabIndent": "insertSpaces",
-    "tabSize": 2
-  }
+  "appid": "wx9b669f17cb0f999c",
+  "projectname": "shenbao"
 }

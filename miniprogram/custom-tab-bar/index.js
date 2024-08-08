@@ -1,8 +1,8 @@
 Component({
   data: {
     selected: 0,
-    color: "#BBBBBB",
-    selectedColor: "#fa3d10",
+    color: "#FFFFFF",
+    selectedColor: "#FFFFFF",
     list: [{
       pagePath: "/pages/index/index",
       iconPath: "/images/tab_ctrl.png",
@@ -15,16 +15,20 @@ Component({
       text: "设置"
     }]
   },
-  attached() {
-  },
+  attached() {},
   methods: {
     switchTab(e) {
       const data = e.currentTarget.dataset
+      const index = data.index;
       const url = data.path
-      wx.switchTab({ url })
-      this.setData({
-        selected: data.index
-      })
+      console.log("切换tab", e);
+      var that = this;
+      that.setData({
+        selected: index
+      });
+      wx.switchTab({
+        url: url
+      });
     }
   }
 })
