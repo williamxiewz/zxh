@@ -28,6 +28,7 @@ const ADD_DEVICE_MSG = '请使用原车遥控器同时按住锁键和开锁键3�
 Page({
 
   data: {
+    statusBarHeight: 27,
     canIUseGetUserProfile: false,
     logged: false,
     avatarUrl: './user-unlogin.png',
@@ -125,36 +126,6 @@ Page({
 
   testPay(e) {
     this.pay();
-  },
-
-  getPhoneNumber(e) {
-    console.log('getPhoneNumber', e)
-    var that = this;
-    var cloudIDType = typeof (e.detail.cloudID);
-    if (cloudIDType != 'string') {
-      console.error('getPhoneNumber() - cloudIDType=' + cloudIDType)
-      return;
-    }
-    dbutil.cloud.callFunction({
-      name: 'openapi',
-      data: {
-        action: 'getOpenData',
-        openData: {
-          list: [
-            e.detail.cloudID,
-          ]
-        }
-      }
-    }).then(res => {
-      console.log('[getPhoneNumber] 调用成功：', res);
-      let phoneNumber = res.result.list[0].data.phoneNumber;
-      console.info("获得手机号", phoneNumber);
-      sputil.putPhoneNumber(phoneNumber);
-      that.setData({
-        showGetPhoneNumberButton: false
-      });
-      that.jiHuo();
-    }).catch(console.error);
   },
 
   showPairDeviceDialog: function () {
@@ -264,6 +235,7 @@ Page({
 
     sputil.putDeviceMac(myDevice.mac);
     sputil.putDeviceId(myDevice.deviceId);
+    bleproxy.setCurrentDeviceId(myDevice.deviceId);
     sputil.putDevices(devices);
 
     //绑定成功后
@@ -427,10 +399,8 @@ Page({
 
   onLoad: function (options) {
     var that = this;
-    console.info('手机号 ' + sputil.getPhoneNumber());
     that.setData({
-      isEncrypt: sputil.isEncrypt(),
-      showGetPhoneNumberButton: sputil.getPhoneNumber() == ''
+      isEncrypt: sputil.isEncrypt()
     });
 
     if (wx.getUserProfile) {
@@ -475,7 +445,8 @@ Page({
     wx.getSystemInfo({
       success: (result) => {
         that.setData({
-          windowHeight: result.windowHeight - 54 //tabBar的高度设置的54px
+          windowHeight: result.windowHeight - 100, //tabBar的高度设置的54px
+          statusBarHeight: result.statusBarHeight
         });
       }
     });
@@ -487,14 +458,18 @@ Page({
       for (var i = 0; i < devices.length; i++) {
         let itemMac = devices[i].mac
         //由于iOS的MAC跟deviceId不一样，这里通过MAC获取deviceId作比较
-        if (sputil.getDeviceIdByMac(itemMac) == res.deviceId) {
-          let itemDeviceId = res.deviceId
+        let itemDeviceId = sputil.getDeviceIdByMac(itemMac);
+        if(!itemDeviceId) {
+          itemDeviceId = util.mac2DeviceId(itemMac);
+        }
+        if (itemDeviceId == res.deviceId) {
           devices[i].connected = res.connected;
           devices[i].deviceId = itemDeviceId;
           //自动选中最新连接的设备
           if (res.connected) {
             sputil.putDeviceMac(itemMac);
             sputil.putDeviceId(itemDeviceId);
+            bleproxy.setCurrentDeviceId(itemDeviceId);
             that.setData({
               mac: itemMac,
               deviceId: itemDeviceId,
@@ -617,7 +592,7 @@ Page({
             //感应距离为1表示感应关闭
             let ganyingValue = value[12] == 1 ? 3 : value[12];
             that.sendEnanbleGanyingCmd(deviceId, ganyingValue);
-            setTimeout(function () {
+            setTimeout(function() {
               that.sendEnanbleGanyingCmd(deviceId, ganyingValue);
             }, 200);
           }
@@ -733,6 +708,9 @@ Page({
         console.log(element)
         let tempMac = element.mac
         let tempDeviceId = sputil.getDeviceIdByMac(tempMac)
+        if(!tempDeviceId) {
+          tempDeviceId = util.mac2DeviceId(tempMac);
+        }
         element.connected = bleproxy.isConnected(tempDeviceId)
         if (tempMac != '' && tempMac == sputil.getDeviceMac()) {
           mac = tempMac
@@ -746,11 +724,15 @@ Page({
         if (devices[0].mac != '') {
           mac = devices[0].mac;
           deviceId = devices[0].deviceId;
+          if(!deviceId) {
+            deviceId = util.mac2DeviceId(mac);
+          }
           ganyingAvailable = that.isGanyingAvailable(devices[0]);
         }
       }
       sputil.putDeviceMac(mac)
       sputil.putDeviceId(deviceId)
+      bleproxy.setCurrentDeviceId(deviceId);
       sputil.putDevices(devices)
       that.setData({
         mac: mac,
@@ -819,14 +801,15 @@ Page({
         timingFunc: 'easeIn'
       }
     });
+    //
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({
-        selected: 1,
-        bg_path: '/images/tab_settings_selected.png'
+        selected: 2,
+        bg_path: '/images/tab_settings_sel.png'
       });
     }
-    //云数据库获取用户的设备
     console.info('userConsole.js onShow()');
+    //云数据库获取用户的设备
     this.getDevicesFromCloud();
   },
 
@@ -893,6 +876,7 @@ Page({
     setTimeout(function () {
       //设置一下标志，在收到上报的状态数据后再发送开感应的指令
       sputil.setSendEnableGanyingCmd(deviceId, true);
+      //const deviceNo = parseInt(myDevice.type.substring(3, 5), 16);
       if (app.globalData.platform == 'android') {
         console.info('android透传绑定成功，发起HID配对');
         //发起蓝牙HID配对，仅针对Android手机
@@ -1030,6 +1014,7 @@ Page({
   },
 
   tipAfterDelete: function (device) {
+    console.log('删除', device);
     wx.showModal({
       content: '确保设备能再次与手机配对，请进入手机-设置-蓝牙-选择 ' + device.name + ' 设备点击取消配对或忽略此设备',
       showCancel: false
@@ -1062,6 +1047,7 @@ Page({
     if (sputil.getDeviceMac() == mac) {
       sputil.putDeviceMac('')
       sputil.putDeviceId('')
+      bleproxy.setCurrentDeviceId('');
       bleproxy.disconnect(this.data.deviceId)
 
       this.setData({
@@ -1081,7 +1067,7 @@ Page({
       var that = this
       wx.getSystemInfo({
         success: (result) => {
-          console.info('定位开关', result.locationEnabled)
+          console.info('定位开关', result.locationEnabled);
           if (!result.locationEnabled) {
             wx.showModal({
               title: '提示',
@@ -1100,6 +1086,7 @@ Page({
               console.info('切换设备', item)
               sputil.putDeviceMac(item.mac)
               sputil.putDeviceId(item.deviceId)
+              bleproxy.setCurrentDeviceId(item.deviceId);
               that.setData({
                 mac: item.mac,
                 deviceId: item.deviceId,
@@ -1129,7 +1116,8 @@ Page({
   //根据设备类型判断是否支持“后台感应功能”
   isGanyingAvailable(device) {
     let deviceType = typeof(device) == 'string' ? device : device.type;
-    let num = util.deviceTypeNum(deviceType);
+    let num = parseInt(deviceType.substring(3, 5), 16);
+    if(num > 0xA0) num -= 0xA0;
     return num == 2 || num == 3 || num == 4 || num >= 8;
     //return deviceType == '+BA02' || deviceType == '+BA03' || deviceType == '+BA08' || deviceType == '+BA09'
   },

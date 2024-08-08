@@ -9,8 +9,9 @@
     "backgroundColor": "#F6F6F6",
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#F6F6F6",
-    "navigationBarTitleText": "新蕾智行",
-    "navigationBarTextStyle": "black"
+    "navigationBarTitleText": "智享e+",
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "custom"
   },
   "usingComponents": {
     "van-count-down": "./dist/count-down/index"

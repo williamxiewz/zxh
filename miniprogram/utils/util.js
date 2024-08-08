@@ -157,7 +157,7 @@ const uint8ToHex = (byte) => {
 const mac2DeviceId = (mac) => {
   if (mac.match(/[0-9A-Fa-f]{12}/)) {
     let arr = new Uint8Array(hex2array(mac));
-    let macstd = Array.from(arr).map(e => uint8ToHex(e)).join(':');
+    let macstd = Array.from(arr).map(uint8ToHex).join(':');
     // for (let i = arr.byteLength - 1; i >= 0; i--) {
     //   macstd += uint8ToHex(arr[i]);
     //   if (i > 0) {
@@ -172,26 +172,6 @@ const mac2DeviceId = (mac) => {
   }
 }
 
-const deviceTypeNum = (deviceType) => {
-  let num = parseInt(deviceType.substring(3, 5), 16);
-  if(num > 0xA0) num -= 0xA0;
-  if(num > 0xB0) num -= 0xB0;
-  if(num > 0xC0) num -= 0xC0;
-  if(num > 0xD0) num -= 0xD0;
-  if(num > 0xE0) num -= 0xE0;
-  if(num > 0xF0) num -= 0xF0;
-  return num;
-}
-
-//是否是带寻车功能的设备
-const isCall = (device) => {
-  if(!device) {
-    return true;
-  }
-  // XL2 是“开座包”，其他是“寻车”
-  return device.name.indexOf('XL2') == -1;
-}
-
 module.exports = {
   formatTime: formatTime,
   array2hex: array2hex,
@@ -201,7 +181,5 @@ module.exports = {
   randomSelfID: randomSelfID,
   arraycopy: arraycopy,
   getCurrentDate: getCurrentDate,
-  mac2DeviceId: mac2DeviceId,
-  deviceTypeNum: deviceTypeNum,
-  isCall: isCall
+  mac2DeviceId: mac2DeviceId
 }

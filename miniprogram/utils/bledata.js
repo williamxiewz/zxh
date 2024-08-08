@@ -74,14 +74,16 @@ const queryState = () => {
 
 //value 是 ArrayBuffer 类型
 const encryptPayload = (value, complete) => {
-  dbutil.getCloud().callFunction({
-    name: 'echo',
-    data: {
-      action: 'encrypt',
-      value: util.array2hex(value, false)
-    },
-    complete: complete
-  })
+  if(dbutil.isInit()) {
+    dbutil.getCloud().callFunction({
+      name: 'echo',
+      data: {
+        action: 'encrypt',
+        value: util.array2hex(value, false)
+      },
+      complete: complete
+    });
+  }
 }
 
 //value 是 ArrayBuffer 类型

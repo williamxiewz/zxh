@@ -5,6 +5,24 @@ const sputil = require('/sputil.js')
 const bledata = require('/bledata.js')
 const log = require('/log.js')
 
+var currentDeviceId = '';
+
+const getCurrentDeviceId = () => {
+  return currentDeviceId;
+}
+
+const setCurrentDeviceId = (deviceId) => {
+  currentDeviceId = deviceId;
+}
+
+//关闭手机蓝牙时调用
+const removeAllDeviceIds = () => {
+  // connectedIdArr.forEach((item, index, arr) => {
+  //   disconnect(item);
+  // });
+  connectedIdArr.length = 0; //清空数组
+}
+
 //已连接的设备id
 const connectedIdArr = []
 
@@ -22,11 +40,6 @@ const isConnected = (str) => {
     }
   }
   return false;
-}
-
-//关闭手机蓝牙的时候调用
-const removeAllDeviceIds =()=>{
-  connectedIdArr.length = 0;
 }
 
 const removeDeviceId = (str) => {
@@ -133,7 +146,7 @@ const connect = (deviceId) => {
     console.warn('bleproxy.js connect() >>> deviceId无效 ' + deviceId);
     return;
   }
-  if(!bluetoothAvailable) {
+  if (!bluetoothAvailable) {
     console.warn('bleproxy.js connect() >>> 蓝牙没打开，无法连接 ' + deviceId);
     return;
   }
@@ -362,12 +375,14 @@ module.exports = {
   connect: connect,
   send: send,
   sendToConnectedDevices: sendToConnectedDevices,
+  writeBLECharacteristic : writeBLECharacteristic,
   disconnect: disconnect,
   addDeviceId: addDeviceId,
   removeDeviceId: removeDeviceId,
-  removeAllDeviceIds: removeAllDeviceIds,
   isConnected: isConnected,
   close: close,
   showModal: showModal,
-  writeBLECharacteristic: writeBLECharacteristic
+  removeAllDeviceIds: removeAllDeviceIds,
+  setCurrentDeviceId: setCurrentDeviceId,
+  getCurrentDeviceId: getCurrentDeviceId
 }
