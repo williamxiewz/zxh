@@ -1,0 +1,15 @@
+<!--components/swipe-button/swipe-button.wxml-->
+<view class="container-r swipe_bg_off" bindtouchstart="onTouchStart" bindtouchmove="onTouchMove" bindtouchend="onTouchEnd" id="root" style="align-items: center;justify-content: center;">
+  <view class="container-h" style="display: {{on?'none':'block'}};position: absolute;margin-top: 35rpx;margin-left: 240rpx;">
+    <text style="font-size: 18px;">滑动开启</text>
+    <image src="../../images/swipe_arrow.png" style="margin-left: 20rpx;width: 39rpx;height: 35rpx;"></image>
+  </view>
+  <view class="container-h swipe_bg_on" style="display: {{on?'block':'none'}};position: absolute;width:100%;height:100%;">
+    <view class="container-h" style="position: absolute;margin-top: 35rpx;margin-left: 230rpx;">
+      <text style="font-size: 18px;color: white;">点击关闭</text>
+    </view>
+  </view>
+  <!-- <image src="../../images/swipe_btn_on.png" style="position: absolute;height: 100%;"></image> -->
+  <!-- -moz-transform:translateX(10%);-webkit-transform:translateX(10%); -->
+  <image src="../../images/swipe_thumb.png" id="thumb" style="display: {{on?'none':'block'}};height: 120rpx;width: 120rpx;margin: 0rpx 0rpx;transform:translateX({{x_offset}}px);"></image>
+</view>

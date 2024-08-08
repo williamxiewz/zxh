@@ -32,7 +32,7 @@
           <view class="radio {{mac != '' && mac == item.mac? 'radio-checked':'radio-unchecked'}}" bindtap="addDevice"
             bindlongpress="removeDevice" data-item="{{item}}">
             <!-- <radio value="{{mac}}" checked="{{deviceIndex == item.index}}" /> -->
-            <view style="color:{{ item.deviceId=='' || item.connected? 'black':'#dddddd'}};">{{item.name}}
+            <view style="color:{{ item.name=='+' || item.connected? 'black':'#dddddd'}};">{{item.name}}
               {{item.version}}</view>
           </view>
         </label>
@@ -102,7 +102,7 @@
       <!-- 版本信息 -->
       <view class="list-item">
         <text class="request-text" style="flex:1;">版本信息</text>
-        <text class="request-text">V1.0.2</text>
+        <text class="request-text">V1.0.3</text>
       </view>
       <!-- 客服 -->
       <view class="list-item">

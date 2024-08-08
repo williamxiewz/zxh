@@ -264,6 +264,7 @@ Page({
 
     sputil.putDeviceMac(myDevice.mac);
     sputil.putDeviceId(myDevice.deviceId);
+    bleproxy.setCurrentDeviceId(myDevice.deviceId);
     sputil.putDevices(devices);
 
     //绑定成功后
@@ -275,9 +276,9 @@ Page({
     } else {
       //未激活的用户，配对成功后显示“激活”按钮
       const myuser = app.globalData.myuser;
-      if(myuser.use_times > 20) {
+      if (myuser.use_times > 20) {
         that.setData({
-          showJiHuoButton: false//true
+          showJiHuoButton: false //true
         });
       }
     }
@@ -487,14 +488,18 @@ Page({
       for (var i = 0; i < devices.length; i++) {
         let itemMac = devices[i].mac
         //由于iOS的MAC跟deviceId不一样，这里通过MAC获取deviceId作比较
-        if (sputil.getDeviceIdByMac(itemMac) == res.deviceId) {
-          let itemDeviceId = res.deviceId
+        let itemDeviceId = sputil.getDeviceIdByMac(itemMac);
+        if (!itemDeviceId) {
+          itemDeviceId = util.mac2DeviceId(itemMac);
+        }
+        if (itemDeviceId == res.deviceId) {
           devices[i].connected = res.connected;
           devices[i].deviceId = itemDeviceId;
           //自动选中最新连接的设备
           if (res.connected) {
             sputil.putDeviceMac(itemMac);
             sputil.putDeviceId(itemDeviceId);
+            bleproxy.setCurrentDeviceId(itemDeviceId);
             that.setData({
               mac: itemMac,
               deviceId: itemDeviceId,
@@ -566,7 +571,7 @@ Page({
       case 0x88:
       case 0x89:
       case 0x8A:
-      case 0x8B://目前没有0x8B~0x8F
+      case 0x8B: //目前没有0x8B~0x8F
       case 0x8C:
       case 0x8D:
       case 0x8E:
@@ -605,7 +610,7 @@ Page({
     console.info('isSharedDevice=' + that.isSharedDevice() + ', isUserAvailable=' + app.isUserAvailable());
     var deviceState = '';
     if (value.length >= 12) {
-      let deviceType = sputil.getDeviceTypeById(deviceId); 
+      let deviceType = sputil.getDeviceTypeById(deviceId);
       console.info('设备类型', deviceType);
       if (that.isGanyingAvailable(deviceType)) {
         //激活用户绑定的设备，才处理感应功能的数据
@@ -621,7 +626,7 @@ Page({
               that.sendEnanbleGanyingCmd(deviceId, ganyingValue);
             }, 200);
           }
-          
+
           switch (value[12]) {
             case 1:
               that.setData({
@@ -733,6 +738,9 @@ Page({
         console.log(element)
         let tempMac = element.mac
         let tempDeviceId = sputil.getDeviceIdByMac(tempMac)
+        if(!tempDeviceId) {
+          tempDeviceId = util.mac2DeviceId(tempMac);
+        }
         element.connected = bleproxy.isConnected(tempDeviceId)
         if (tempMac != '' && tempMac == sputil.getDeviceMac()) {
           mac = tempMac
@@ -746,18 +754,22 @@ Page({
         if (devices[0].mac != '') {
           mac = devices[0].mac;
           deviceId = devices[0].deviceId;
+          if(!deviceId) {
+            deviceId = util.mac2DeviceId(mac);
+          }
           ganyingAvailable = that.isGanyingAvailable(devices[0]);
         }
       }
       sputil.putDeviceMac(mac)
       sputil.putDeviceId(deviceId)
+      bleproxy.setCurrentDeviceId(deviceId);
       sputil.putDevices(devices)
       that.setData({
         mac: mac,
         devices: devices,
         deviceId: deviceId,
         ganyingAvailable: ganyingAvailable,
-        showJiHuoButton: false//that.isShowJiHuoButton()
+        showJiHuoButton: false //that.isShowJiHuoButton()
       });
       ////
     })
@@ -833,7 +845,7 @@ Page({
   //判断是否要显示“激活”按钮
   isShowJiHuoButton: function () {
     const myuser = app.globalData.myuser;
-    if(myuser.use_times > 20) {
+    if (myuser.use_times > 20) {
       return !(app.isUserAvailable()) && sputil.getDeviceCount() > 0;
     }
     return false;
@@ -1016,7 +1028,7 @@ Page({
                 if (res2.result.stats.removed > 0 || res2.result.stats.updated > 0) {
                   that.doDelete(item);
                   if (that.isGanyingAvailable(item)) {
-                    that.tipAfterDelete(item);
+                    that.tipAfterDelete(item.type);
                   }
                 }
               });
@@ -1029,9 +1041,22 @@ Page({
     }
   },
 
-  tipAfterDelete: function (device) {
+  tipAfterDelete: function (deviceType) {
+    var productNo = 'XX';
+    if (deviceType == '+BA02') {
+      productNo = '02'
+    }
+    if (deviceType == '+BA03') {
+      productNo = '03'
+    }
+    if (deviceType == '+BA08') {
+      productNo = '08'
+    }
+    if (deviceType == '+BA09') {
+      productNo = '09'
+    }
     wx.showModal({
-      content: '确保设备能再次与手机配对，请进入手机-设置-蓝牙-选择 ' + device.name + ' 设备点击取消配对或忽略此设备',
+      content: '确保设备能再次与手机配对，请进入手机-设置-蓝牙-选择 ZXH_BA' + productNo + '****设备点击取消配对或忽略此设备',
       showCancel: false
     });
   },
@@ -1062,6 +1087,7 @@ Page({
     if (sputil.getDeviceMac() == mac) {
       sputil.putDeviceMac('')
       sputil.putDeviceId('')
+      bleproxy.setCurrentDeviceId('');
       bleproxy.disconnect(this.data.deviceId)
 
       this.setData({
@@ -1100,6 +1126,7 @@ Page({
               console.info('切换设备', item)
               sputil.putDeviceMac(item.mac)
               sputil.putDeviceId(item.deviceId)
+              bleproxy.setCurrentDeviceId(item.deviceId);
               that.setData({
                 mac: item.mac,
                 deviceId: item.deviceId,
@@ -1128,7 +1155,7 @@ Page({
 
   //根据设备类型判断是否支持“后台感应功能”
   isGanyingAvailable(device) {
-    let deviceType = typeof(device) == 'string' ? device : device.type;
+    let deviceType = typeof (device) == 'string' ? device : device.type;
     let num = util.deviceTypeNum(deviceType);
     return num == 2 || num == 3 || num == 4 || num >= 8;
     //return deviceType == '+BA02' || deviceType == '+BA03' || deviceType == '+BA08' || deviceType == '+BA09'

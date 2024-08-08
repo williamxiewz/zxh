@@ -1,0 +1,12 @@
+/* components/swipe-button/swipe-button.wxss */
+
+.swipe_bg_off {
+  height: 120rpx;
+  border-radius: 65rpx;
+  background-color: rgb(227, 229, 232);
+}
+.swipe_bg_on {
+  height: 120rpx;
+  border-radius: 65rpx;
+  background-color: rgb(61, 253, 242);
+}
