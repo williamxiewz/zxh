@@ -1,17 +1,17 @@
 Component({
   data: {
     selected: 0,
-    color: "#BBBBBB",
-    selectedColor: "#fa3d10",
+    color: "#FFFFFF",
+    selectedColor: "#FFFFFF",
     list: [{
       pagePath: "/pages/index/index",
       iconPath: "/images/tab_ctrl.png",
-      selectedIconPath: "/images/tab_ctrl_selected.png",
+      selectedIconPath: "/images/tab_ctrl.png",
       text: "控制"
     }, {
       pagePath: "/pages/userConsole/userConsole",
       iconPath: "/images/tab_settings.png",
-      selectedIconPath: "/images/tab_settings_selected.png",
+      selectedIconPath: "/images/tab_settings.png",
       text: "设置"
     }]
   },

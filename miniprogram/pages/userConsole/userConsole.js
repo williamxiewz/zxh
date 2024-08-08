@@ -10,6 +10,7 @@ const viewutil = require('../../utils/viewutil.js')
 const httputil = require('../../utils/httputil.js')
 const log = require('../../utils/log.js')
 const onfire = require('../../utils/onfire.js')
+const gattattrs = require('../../utils/GattAttributes.js')
 import drawQrcode from '../../qrcode/weapp.qrcode.esm.js'
 
 const DEVICE_STATES = [
@@ -123,10 +124,6 @@ Page({
     }
   },
 
-  testPay(e) {
-    this.pay();
-  },
-
   getPhoneNumber(e) {
     console.log('getPhoneNumber', e)
     var that = this;
@@ -135,7 +132,7 @@ Page({
       console.error('getPhoneNumber() - cloudIDType=' + cloudIDType)
       return;
     }
-    dbutil.cloud.callFunction({
+    wx.cloud.callFunction({
       name: 'openapi',
       data: {
         action: 'getOpenData',
@@ -277,7 +274,7 @@ Page({
       const myuser = app.globalData.myuser;
       if(myuser.use_times > 20) {
         that.setData({
-          showJiHuoButton: false//true
+          showJiHuoButton: true
         });
       }
     }
@@ -605,7 +602,7 @@ Page({
     console.info('isSharedDevice=' + that.isSharedDevice() + ', isUserAvailable=' + app.isUserAvailable());
     var deviceState = '';
     if (value.length >= 12) {
-      let deviceType = sputil.getDeviceTypeById(deviceId); 
+      let deviceType = sputil.getDeviceTypeById(deviceId);
       console.info('设备类型', deviceType);
       if (that.isGanyingAvailable(deviceType)) {
         //激活用户绑定的设备，才处理感应功能的数据
@@ -757,7 +754,7 @@ Page({
         devices: devices,
         deviceId: deviceId,
         ganyingAvailable: ganyingAvailable,
-        showJiHuoButton: false//that.isShowJiHuoButton()
+        showJiHuoButton: that.isShowJiHuoButton()
       });
       ////
     })
@@ -810,19 +807,10 @@ Page({
 
 
   onShow: function () {
-    //状态栏颜色
-    wx.setNavigationBarColor({
-      frontColor: '#000000',
-      backgroundColor: '#ffffff',
-      animation: {
-        duration: 400,
-        timingFunc: 'easeIn'
-      }
-    });
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({
         selected: 1,
-        bg_path: '/images/tab_settings_selected.png'
+        bg_path: '/images/tab_settings.png'
       });
     }
     //云数据库获取用户的设备
@@ -893,6 +881,7 @@ Page({
     setTimeout(function () {
       //设置一下标志，在收到上报的状态数据后再发送开感应的指令
       sputil.setSendEnableGanyingCmd(deviceId, true);
+      //const deviceNo = parseInt(myDevice.type.substring(3, 5));
       if (app.globalData.platform == 'android') {
         console.info('android透传绑定成功，发起HID配对');
         //发起蓝牙HID配对，仅针对Android手机
@@ -1129,7 +1118,7 @@ Page({
   //根据设备类型判断是否支持“后台感应功能”
   isGanyingAvailable(device) {
     let deviceType = typeof(device) == 'string' ? device : device.type;
-    let num = util.deviceTypeNum(deviceType);
+    const num = util.getDeviceNum(deviceType);
     return num == 2 || num == 3 || num == 4 || num >= 8;
     //return deviceType == '+BA02' || deviceType == '+BA03' || deviceType == '+BA08' || deviceType == '+BA09'
   },
@@ -1186,25 +1175,30 @@ Page({
   pay: function () {
     var that = this;
     //调用微信支付云接口
-    dbutil.pay((res) => {
-      const payment = res.result.payment;
-      //payment.appId = 'wxf707393f43bdaa51';
-      console.log('##### payment =', payment);
-      wx.requestPayment({
-        ...payment,
-        success(res) {
-          console.log('支付成功', res);
-          app.globalData.myuser.is_vip = true;
-          sputil.setPaySuccess(true);
-          that.setData({
-            showJiHuoButton: false
-          });
-        },
-        fail(res) {
-          console.log('支付失败', res);
-        }
-      });
-    });
+    wx.cloud.callFunction({
+      name: 'wechatpay',
+      data: {
+        totalFee: 1800 //金额(单位：分)
+      },
+      success: res => {
+        const payment = res.result.payment
+        wx.requestPayment({
+          ...payment,
+          success(res) {
+            console.log('支付成功', res);
+            app.globalData.myuser.is_vip = true;
+            sputil.setPaySuccess(true);
+            that.setData({
+              showJiHuoButton: false
+            });
+          },
+          fail(res) {
+            console.log('支付失败', res);
+          }
+        })
+      },
+      fail: console.error,
+    })
   },
 
   //部分功能需要限制免费用户的使用次数，该方法检测用户是否可以使用
@@ -1246,7 +1240,7 @@ Page({
   },
 
   test: function () {
-    console.log('测试XXX');
+    console.log('测试XXX')
   },
 
 })

@@ -3,8 +3,8 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 48px;
-  background:rgb(236, 245, 255);
+  height: 54px;
+  background: #070d2c;
   display: flex;
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -20,7 +20,7 @@
 }
 
 .tab-bar-bg {
-  position: fixed;
+  position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
@@ -35,13 +35,14 @@
   justify-content: center;
   align-items: center;
   flex-direction: row;
+  height: 54px;
 }
 
 .tab-bar-item cover-image {
-  width: 25px;
-  height: 25px;
+  width: 27px;
+  height: 27px;
 }
 
 .tab-bar-item cover-view {
-  font-size: 12px;
+  font-size: 10px;
 }
