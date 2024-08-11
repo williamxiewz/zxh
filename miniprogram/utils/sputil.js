@@ -7,7 +7,7 @@ const putLogo = (logo) => {
 const getLogo = () => {
   //默认：众鑫汇智控
   var logo = wx.getStorageSync('settings_logo')
-  if (logo == '') return '踏浪智控'
+  if (logo == '') return '众鑫汇智控'
   return logo
 }
 
@@ -75,13 +75,13 @@ const getSensitivity = () => {
   return wx.getStorageSync('sensitivity')
 }
 
-//用于根据 deviceId 查询 deviceiType  
-const putDeviceType = (deviceId, type) => {  
-  wx.setStorageSync(deviceId + '_type', type);  
-}  
- 
-const getDeviceTypeById = (deviceId) => {  
-  return wx.getStorageSync(deviceId + '_type');  
+//用于根据 deviceId 查询 deviceiType
+const putDeviceType = (deviceId, type) => {
+  wx.setStorageSync(deviceId + '_type', type);
+}
+
+const getDeviceTypeById = (deviceId) => {
+  return wx.getStorageSync(deviceId + '_type');
 }
 
 //针对iOS系统deviceId不一样的情况，将MAC与deviceId成对存储
@@ -185,7 +185,7 @@ module.exports = {
   isPaySuccess: isPaySuccess,
   setPaySuccess: setPaySuccess,
   isSendEnableGanyingCmd: isSendEnableGanyingCmd,
-  setSendEnableGanyingCmd: setSendEnableGanyingCmd,  
-  putDeviceType: putDeviceType,  
+  setSendEnableGanyingCmd: setSendEnableGanyingCmd,
+  putDeviceType: putDeviceType,
   getDeviceTypeById: getDeviceTypeById
 }

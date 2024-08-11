@@ -34,7 +34,12 @@ exports.main = async (event, context) => {
 
   console.log(event)
   if (event.resultCode == 'SUCCESS') {
-    const openid = cloud.getWXContext().OPENID
+    const fromOpenid = cloud.getWXContext().FROM_OPENDID;
+    //跨环境调用获取的 OPENID 为空
+    let openid = cloud.getWXContext().OPENID;
+    console.log('FROM_OPENID =', fromOpenid);
+    console.log('openid =', openid);
+    openid = event.userInfo.openId;
     const db = cloud.database()
 
     var getRes = await db.collection('my_users').where({

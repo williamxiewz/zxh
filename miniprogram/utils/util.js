@@ -1,4 +1,3 @@
-
 const HEX = '0123456789ABCDEF'
 
 const formatTime = date => {
@@ -12,7 +11,7 @@ const formatTime = date => {
 
   let hhmmss = [hour, minute, second].map(formatNumber).join(':')
   //console.error(formatMs(ms))
-  return /*[year, month, day].map(formatNumber).join('/') + ' ' + */hhmmss + ':' + formatMs(ms)
+  return /*[year, month, day].map(formatNumber).join('/') + ' ' + */ hhmmss + ':' + formatMs(ms)
 }
 
 
@@ -125,8 +124,8 @@ const formatMs = ms => {
 const randomSelfID = () => {
   var id = "";
   for (var i = 0; i < 4; i++) {
-    let v = Math.floor(Math.random() * 256);//[0, 256)随机一个整数
-    id += ('0' + v.toString(16)).slice(-2).toUpperCase();//转化成十六进制
+    let v = Math.floor(Math.random() * 256); //[0, 256)随机一个整数
+    id += ('0' + v.toString(16)).slice(-2).toUpperCase(); //转化成十六进制
   }
   //console.log("生成手机ID: " + id);
   return id;
@@ -154,16 +153,13 @@ const uint8ToHex = (byte) => {
   return HEX[(byte >> 4) & 0xf] + HEX[byte & 0xf];
 }
 //mac是广播中的，与实际MAC字节序相反，本方法主要用于分享给Android系统的设备连接
-const mac2DeviceId = (mac) => {
+const mac2DeviceId = (mac, reverse) => {
   if (mac.match(/[0-9A-Fa-f]{12}/)) {
     let arr = new Uint8Array(hex2array(mac));
+    if (reverse) {
+      arr.reverse();
+    }
     let macstd = Array.from(arr).map(e => uint8ToHex(e)).join(':');
-    // for (let i = arr.byteLength - 1; i >= 0; i--) {
-    //   macstd += uint8ToHex(arr[i]);
-    //   if (i > 0) {
-    //     macstd += ':';
-    //   }
-    // }
     console.log(`mac2DeviceId() - ${mac} -> ${macstd}`);
     return macstd;
   } else {
@@ -172,14 +168,14 @@ const mac2DeviceId = (mac) => {
   }
 }
 
-const deviceTypeNum = (deviceType) => {
-  let num = parseInt(deviceType.substring(3, 5), 16);
-  if(num > 0xA0) num -= 0xA0;
-  if(num > 0xB0) num -= 0xB0;
-  if(num > 0xC0) num -= 0xC0;
-  if(num > 0xD0) num -= 0xD0;
-  if(num > 0xE0) num -= 0xE0;
-  if(num > 0xF0) num -= 0xF0;
+const getDeviceNum = (type) => {
+  let num = parseInt(type.substring(3, 5), 16);
+  if (num > 0xA0) num -= 0xA0;
+  if (num > 0xB0) num -= 0xB0;
+  if (num > 0xC0) num -= 0xC0;
+  if (num > 0xD0) num -= 0xD0;
+  if (num > 0xE0) num -= 0xE0;
+  if (num > 0xF0) num -= 0xF0;
   return num;
 }
 
@@ -188,8 +184,11 @@ const isCall = (device) => {
   if(!device) {
     return true;
   }
-  // XL2 是“开座包”，其他是“寻车”
-  return device.name.indexOf('XL2') == -1;
+  //num为9，版本以4结尾的是“开座包”，其他是“寻车”
+  let num = getDeviceNum(device.type);
+  let ver = device.version;
+  let isKzb = num == 9 && (ver.endsWith('4') || ver.endsWith('6'));
+  return !isKzb;
 }
 
 module.exports = {
@@ -202,6 +201,6 @@ module.exports = {
   arraycopy: arraycopy,
   getCurrentDate: getCurrentDate,
   mac2DeviceId: mac2DeviceId,
-  deviceTypeNum: deviceTypeNum,
+  getDeviceNum: getDeviceNum,
   isCall: isCall
 }

@@ -21,8 +21,6 @@
     "compileHotReLoad": false,
     "lazyloadPlaceholderEnable": false,
     "useMultiFrameRuntime": true,
-    "useApiHook": true,
-    "useApiHostProcess": true,
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],
@@ -41,9 +39,7 @@
     "ignoreUploadUnusedFiles": true,
     "condition": false
   },
-  "appid": "wx5973b4d79e2bf5ed",
-  "projectname": "zhongxinhui",
-  "libVersion": "2.15.0",
+  "appid": "wx8040a92bbd85ec46",
   "condition": {
     "miniprogram": {
       "list": [
@@ -57,12 +53,14 @@
   },
   "compileType": "miniprogram",
   "srcMiniprogramRoot": "miniprogram/",
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  },
+  "libVersion": "2.15.0",
   "packOptions": {
     "ignore": [],
     "include": []
   },
-  "editorSetting": {
-    "tabIndent": "insertSpaces",
-    "tabSize": 2
-  }
+  "projectname": "zhongxinhui"
 }
