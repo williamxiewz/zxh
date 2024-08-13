@@ -1,6 +1,4 @@
-// pages/userConsole/userConsole.js
 const app = getApp()
-
 const sputil = require('../../utils/sputil.js')
 const bleproxy = require('../../utils/bleproxy.js')
 const bledata = require('../../utils/bledata.js')
@@ -20,7 +18,7 @@ const DEVICE_STATES = [
   '设防', //3
   '预警', //4
   '监测', //5
-  '报警' //6
+  '报警'  //6
 ]
 
 const ADD_DEVICE_TIMEOUT = 30000 //30秒配对超时
@@ -555,6 +553,33 @@ Page({
       that.getDevicesFromCloud();
     });
   },
+  onShow: function () {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({
+        selected: 1,
+        bg_path: '/images/tab_settings_selected.png'
+      });
+    }
+    //云数据库获取用户的设备
+    console.info('userConsole.js onShow()');
+    this.getDevicesFromCloud();
+  },
+  onUnload: function () {
+    onfire.un('onBLEConnectionStateChange_userConsole')
+    onfire.un('onBLECharacteristicValueChange_userConsole')
+    onfire.un('onBluetoothDeviceFound_userConsole')
+    onfire.un('userConsole_update_devices')
+  },
+  onUnload: function () {
+    var that = this;
+    // 断开连接
+    wx.closeBLEConnection({
+      deviceId: that.data.deviceId,
+      success: function (res) {
+        console.error('断开连接', res);
+      },
+    });
+  },
 
   isByte7Valid: function (byte7) {
     switch (byte7) {
@@ -771,12 +796,7 @@ Page({
     return contains
   },
 
-  onUnload: function () {
-    onfire.un('onBLEConnectionStateChange_userConsole')
-    onfire.un('onBLECharacteristicValueChange_userConsole')
-    onfire.un('onBluetoothDeviceFound_userConsole')
-    onfire.un('userConsole_update_devices')
-  },
+ 
 
 
   sendPayload: function (cmdCode, showToast = false, optCode = 0, ganying) {
@@ -806,17 +826,7 @@ Page({
   },
 
 
-  onShow: function () {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({
-        selected: 1,
-        bg_path: '/images/tab_settings_selected.png'
-      });
-    }
-    //云数据库获取用户的设备
-    console.info('userConsole.js onShow()');
-    this.getDevicesFromCloud();
-  },
+
 
   //判断是否要显示“激活”按钮
   isShowJiHuoButton: function () {
@@ -828,17 +838,7 @@ Page({
   },
 
 
-  onUnload: function () {
-    var that = this;
-    // 断开连接
-    wx.closeBLEConnection({
-      deviceId: that.data.deviceId,
-      success: function (res) {
-        console.error('断开连接', res);
-      },
-    });
-  },
-
+ 
 
   onSensitivityChange: function (e) {
     console.log('灵敏度调节', e.detail.value)

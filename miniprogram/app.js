@@ -1,5 +1,4 @@
 const bleproxy = require('./utils/bleproxy')
-//app.js
 const onfire = require('/utils/onfire.js')
 const sputil = require('/utils/sputil.js')
 const dbutil = require('/utils/dbutil.js')
@@ -10,7 +9,7 @@ const httputil = require('/utils/httputil.js')
 
 //从厂商数据获取的设备类型，加号(+)代表设备处于可配对状态
 const DEVICE_TYPES = [
-  'ZXH',
+  'ZXH', //众鑫汇
   'XY1', //轩源
   'HM1', //合美
   'TL1', //踏浪
@@ -27,6 +26,14 @@ const DEVICE_TYPES = [
 const TYPE_PATTERN = /^[_+]BA[A-F\d][\d]$/;
 
 App({
+  globalData: {
+    tabbarheight: 60, // 底部高度
+    openid: '',
+    myuser: {},
+    isNetworkOn: true,
+    appHidden: true,
+    isActivated: false //账号是否已通过激活码激活
+  },
   onLaunch: function () {
     let mac = "2B021DD25B4C";
     util.mac2DeviceId(mac, false);
@@ -180,7 +187,6 @@ App({
       },
     });
   },
-
   onShow: function () {
     var that = this;
     // wx.setKeepScreenOn({
@@ -215,6 +221,13 @@ App({
       hidden: false
     })
     this.globalData.appHidden = false;
+  },
+  onHide: function () {
+    bleproxy.stopLeScan()
+    this.globalData.appHidden = true
+    onfire.fire('onAppHide_index', {
+      hidden: true
+    })
   },
 
   checkBluetoothPermission() {
@@ -256,15 +269,6 @@ App({
     });
   },
 
-  onHide: function () {
-    bleproxy.stopLeScan()
-    this.globalData.appHidden = true
-    onfire.fire('onAppHide_index', {
-      hidden: true
-    })
-  },
-
-
   getOpenid: function () {
     var that = this
     // 调用云函数
@@ -299,8 +303,7 @@ App({
       }
     })
   },
-
-
+  //用户是否可用
   isUserAvailable() {
     const device = sputil.getSelectedDevice();
     if (device == null) return true;
@@ -320,7 +323,6 @@ App({
     }
     return false;
   },
-
   //免费型号
   isFreeDevice(device) {
     console.info('isFreeDevice() - device =', device);
@@ -329,12 +331,4 @@ App({
     return num >= 7;
   },
 
-  globalData: {
-    tabbarheight: 60, // 底部高度
-    openid: '',
-    myuser: {},
-    isNetworkOn: true,
-    appHidden: true,
-    isActivated: false //账号是否已通过激活码激活
-  }
 })

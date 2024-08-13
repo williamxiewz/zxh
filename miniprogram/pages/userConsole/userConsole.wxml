@@ -1,4 +1,3 @@
-<!--pages/userConsole/userConsole.wxml-->
 <view class="container">
   <import src="../../template/pairdevice.wxml" />
   <template is="pairdevice" data="{{...pairdevice}}" />
@@ -12,7 +11,7 @@
   <scroll-view scroll-y="true" style="height: {{windowHeight}}px;">
     <!-- 用户 openid -->
     <view class="userinfo" style="background:white;">
-      <view class="userinfo-avatar" style="background-image: url({{avatarUrl}})"></view>
+      <view class="userinfo-avatar" style="background-image: url({{avatarUrl}})" />
       <button wx:if="{{canIUseGetUserProfile}}" bindtap="getUserProfile" class="userinfo-nickname">{{nickname}}</button>
       <button wx:else open-type="getUserInfo" bindgetuserinfo="onGetUserInfo"
         class="userinfo-nickname">{{nickname}}</button>
@@ -20,7 +19,7 @@
         <button class="button_save" bindtap="jiHuo" style="width:180rpx;padding: 0px 0px;">激活</button>
       </view>
     </view>
-
+    <!--  -->
     <view class="list">
       <!-- <view class="container-h" style="align-items:center;justify-content:center;" bindtap="scanDevice">
         <text class="request-text">搜索设备</text>

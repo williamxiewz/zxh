@@ -1,4 +1,3 @@
-//scanle.js
 const util = require('../../utils/util.js')
 const sputil = require('../../utils/sputil.js')
 const viewutil = require('../../utils/viewutil.js')
@@ -8,9 +7,6 @@ Page({
   data: {
     list: [],
   },
-
-
-
   onPullDownRefresh: function () {
     console.log("onPullDownRefresh")
 
@@ -37,9 +33,6 @@ Page({
       }
     })
   },
-
-
-  //事件处理函数
   onItemClick: function (tapInfo) {
     var dataset = tapInfo.currentTarget.dataset
     console.log("onItemClick");
@@ -51,11 +44,7 @@ Page({
     sputil.putDeviceId(dataset.deviceid)
     wx.navigateBack()
   },
-
-
-
   onLoad: function () {
-    //
     var that = this;
 
     //添加扫描设备的监听
@@ -146,7 +135,6 @@ Page({
       complete: (res) => { },
     });
   },
-
   onShow: function () {
     wx.getBluetoothAdapterState({
       success: function (res) {
@@ -162,7 +150,6 @@ Page({
       },
     })
   },
-
   onHide: function () {
     console.warn("index page onHide")
     wx.stopBluetoothDevicesDiscovery({
@@ -175,7 +162,6 @@ Page({
       }
     });
   },
-
   onUnload: function () {
     console.log("index page onUnload");
   },

@@ -1,6 +1,4 @@
-//index.js
 const app = getApp()
-
 const sputil = require('../../utils/sputil.js')
 const bleproxy = require('../../utils/bleproxy.js')
 const bledata = require('../../utils/bledata.js')
@@ -56,27 +54,281 @@ Page({
     isCall: true, //true是寻车， false是开座包
     callBtnConnectedImage: 'btn_call.png'
   },
+  onLoad: function () {
+    var that = this;
 
-  setCallButtonImage() {
-    let imageName;
-    if(this.data.isCall) {
-      if(this.data.selectedBtn == 3) {
-        imageName = 'btn_call_active.png';
-      } else {
-        imageName = 'btn_call.png';
+    bledata.encryptPayload(bledata.queryState(), function (res) {
+      console.info('onLoad() - 查询状态的数据加密结果', res);
+      that.data.queryValue = util.hex2array(res.result.value);
+    });
+
+    wx.getBluetoothAdapterState({
+      success: (result) => {
+        that.setData({
+          bluetoothAvailable: result.available
+        })
       }
-    } else {
-      if(this.data.selectedBtn == 3) {
-        imageName = 'btn_open_active.png';
+    })
+    //监听APP退后台
+    onfire.on('onAppHide_index', function (res) {
+      if (res.hidden) {
+        that.stopAlarm()
       } else {
-        imageName = 'btn_open.png';
+        that.startTimer();
+      }
+    })
+    //监听蓝牙状态
+    onfire.on('onBluetoothAdapterStateChange_index', function (result) {
+      if(result.available) {
+        that.setData({
+          bluetoothAvailable: true
+        });
+      } else {
+        //停止报警
+        that.stopAlarm();
+        that.setData({
+          bluetoothAvailable: false,
+          connected: false,
+        });
+      }
+    });
+
+    // 监听设备的连接状态
+    onfire.on('onBLEConnectionStateChange_index', function (res) {
+      let mac = sputil.getMacByDeviceId(res.deviceId)
+      //自动选中最新连接的设备
+      if (res.connected) {
+        sputil.putDeviceMac(mac)
+        sputil.putDeviceId(res.deviceId)
+        that.startTimer()
+      } else {
+        //设备断线
+        if (sputil.getDeviceId() == res.deviceId) {
+          //停止报警
+          that.stopAlarm()
+        }
+      }
+
+      let curMac = sputil.getDeviceMac();
+      console.error(`curMac=${curMac}, that.data.connected=${that.data.connected}, connected=${res.connected}, deviceId=${res.deviceId}`);
+      //只处理当前选中的设备
+      if (curMac == '' || curMac == mac) {
+        if (that.data.connected == res.connected) return
+        that.setData({
+          connected: res.connected
+        })
+      }
+    })
+
+    //监听模块端发来的数据
+    onfire.on('onBLECharacteristicValueChange_index', function (res) {
+      //未选中的设备的数据，不处理
+      if (sputil.getDeviceId() != res.deviceId) return
+
+      if (sputil.isEncrypt()) {
+        bledata.decryptPayload(res.value, function (res2) {
+          let buffer = util.hex2array(res2.result.value)
+          that.handleRxData(buffer)
+        })
+      } else {
+        that.handleRxData(res.value)
+      }
+    })
+
+    //本地没有缓存的数据，则从云端获取一下
+    if(!sputil.getDevices()) {
+      this.getDevicesFromCloud();
+    }
+  }, 
+  onUnload: function () {
+    onfire.un('onBLEConnectionStateChange_index')
+    onfire.un('onBLECharacteristicValueChange_index')
+    onfire.un('onBluetoothAdapterStateChange_index')
+    onfire.un('onAppHide_index')
+  },
+  onShow: function () {
+    let that = this;
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({
+        selected: 0,
+        bg_path: '/images/tab_ctrl_selected.png'
+      });
+    }
+    const selectedDevice = sputil.getSelectedDevice();
+    const isConnected = selectedDevice && bleproxy.isConnected(selectedDevice.deviceId);
+    that.startTimer();
+
+    console.error('xxxxxxxxxxxxxxxxxxxxxxxxxxx isUserAvailable=' + app.isUserAvailable());
+    console.error('xxxxxxxxxxxxxxxxxxxxxxxxxxx selectedDevice=', selectedDevice);
+
+    that.setData({
+      logo: sputil.getLogo(),
+      // connected: isConnected,
+      isCall: util.isCall(selectedDevice)
+    });
+
+    this.setCallButtonImage();
+
+    wx.getSystemInfo({
+      success: (result) => {
+        //console.log(result)
+        var sc = result.windowHeight / result.windowWidth
+        if (sc > 16 / 9) {
+          //宽高比大于16/9
+          that.setData({
+            topSpace: 48,
+            bottomLayoutMatginTop: 940,
+            motoImageWidth: 80,
+            startButtonWidth: 32
+          })
+        } else {
+          that.setData({
+            topSpace: 0,
+            bottomLayoutMatginTop: 720,
+            motoImageWidth: 60,
+            startButtonWidth: 26
+          })
+        }
+      },
+      fail: (err) => {
+        console.error(err)
+      }
+    })
+  },
+  onHide: function () {
+    console.warn('index.js onHide()')
+    this.stopAlarm()
+  },
+ //处理接收到的数据
+  handleRxData: function (buffer) {
+    var that = this
+    let value = new Uint8Array(buffer);
+    if (value.length >= 12) {
+      var state = value[11]
+
+      if (state < 0 && state > 7) {
+        return
+      }
+
+      if (that.data.deviceState != state)
+        that.setData({
+          deviceState: state
+        })
+
+      if (state != 6) {
+        that.stopAlarm()
+      }
+      if (state == 6) {
+        //6-报警循环播放
+        //that.playSound(3, true)//todo
+        that.playBackgroundAudio()
+        //that.flash2()
+      } else if (state == 5) {
+        //5-预报警指播一次
+        that.playSound(3, false)
+        //that.flash(0)
+      }
+
+      switch (state) {
+        case 0: //初始
+        case 1: //撤防
+        case 7: //匹配
+          //撤防图案
+          that.setData({
+            imageOfState: '../../images/ic_unlock_blue.png',
+            isStart: false
+          })
+          break;
+
+
+        case 3: //设防
+        case 4: //预警
+        case 5: //检测
+        case 6: //报警
+          //设防图案
+          that.setData({
+            imageOfState: '../../images/ic_lock_blue.png',
+            isStart: false
+          })
+          break;
+
+        case 2: //启动
+          that.setData({
+            isStart: true
+          })
+          break;
       }
     }
-    this.setData({
-      callBtnConnectedImage: imageName
-    });
   },
+  sendPayload: function (cmdCode) {
+    if (!app.globalData.isNetworkOn) {
+      viewutil.toast('网络已断开');
+      return;
+    }
 
+    var that = this;
+    const deviceType = sputil.getDeviceType();
+    let deviceNum = deviceType == '' ? 0 : parseInt(deviceType.substring(3, 5), 16);
+    if (deviceNum > 0xA0) deviceNum -= 0xA0;
+    if (deviceNum > 0xB0) deviceNum -= 0xB0;
+    if (deviceNum > 0xC0) deviceNum -= 0xC0;
+    if (deviceNum > 0xD0) deviceNum -= 0xD0;
+    if (deviceNum > 0xE0) deviceNum -= 0xE0;
+    if (deviceNum > 0xF0) deviceNum -= 0xF0;
+    if (deviceNum == 1 || deviceNum == 4) {
+      //产品1 产品4 限制使用次数
+      const myuser = app.globalData.myuser;
+      console.log('index.js sendPayload() myuser', myuser);
+
+      var isShare = false; //是否是通过扫码添加的设备
+      let devices = sputil.getDevices();
+      devices.forEach(element => {
+        if (sputil.getDeviceMac() == element.mac) {
+          isShare = element.openids.indexOf(app.globalData.openid, 0) == -1;
+        }
+      });
+
+      if (!isShare) {
+        //非分享设备，非VIP用户只可使用20次
+        if (!app.isUserAvailable() && myuser.use_times > 20) {
+          console.error('可免费使用20次，目前已使用次数：' + myuser.use_times);
+          wx.showModal({
+            content: '免费体验已达到上限！如需继续使用手机控车功能，需付费18元，永久使用。',
+            success: (res) => {
+              if (res.confirm) {
+                that.pay(1800);
+              }
+            }
+          });
+          return;
+        }
+      }
+    }
+
+    const deviceId = sputil.getDeviceId();
+    if (bleproxy.isConnected(deviceId)) {
+      app.globalData.myuser.use_times++;
+      let useTimes = app.globalData.myuser.use_times;
+      console.log('index.js sendPayload() - use_times=' + useTimes);
+      dbutil.updateUserUseTimes(useTimes, function (res2) {
+        console.log('更新用户使用次数 ' + useTimes, res2);
+      });
+    }
+
+    if (deviceId != '') {
+      var arr = new Uint8Array(util.hex2array(sputil.getSensitivity()));
+      let sensitivity = arr[0];
+      let limitSpeed = arr[1] == 1;
+      let volume = arr[2];
+      if (sputil.getDeviceType() == '+BA02') {
+        //最后一个感应参数0就是为了使第七个字节变为2
+        bleproxy.send(deviceId, bledata.mkData(cmdCode, sensitivity, limitSpeed, volume, 4, 0));
+      } else {
+        bleproxy.send(deviceId, bledata.mkData(cmdCode, sensitivity, limitSpeed, volume, 4));
+      }
+    }
+  },
+ 
   //扫码添加设备
   scanCode: function () {
     const count = sputil.getDeviceCount()
@@ -176,7 +428,103 @@ Page({
     //////
   },
 
-  //开启定时器读取RSSI，发送心跳包
+  onTouchStart: function (e) {
+    //console.log("TouchStart", e)
+    let index = parseInt(e.currentTarget.dataset.btnindex)
+    //console.log("TouchStart", index)
+    //console.log("typeof index: " + typeof (index) + ", index=" + index)
+    this.setImage(index, IMAGE_ARRAY[index + 5])
+  },
+
+  onTouchEnd: function (e) {
+    if (!this.data.connected) {
+      return;
+    }
+    console.log("TouchEnd", e)
+    let that = this
+
+    let index = parseInt(e.currentTarget.dataset.btnindex)
+    console.log("TouchEnd", index)
+    that.setImage(index, IMAGE_ARRAY[index]);
+    if (this.data.selectedBtn == 0 && index == 0) {
+      //关闭“启动”
+      index = 2;//解锁
+    }
+    that.setData({
+      selectedBtn: index
+    });
+
+    if (index == 0) { //启动
+      that.sendPayload(bledata.CMD_START)
+      that.setData({
+        isStart: true
+      })
+    } else if (index == 1) { //设防
+      that.sendPayload(bledata.CMD_LOCK)
+      //that.flash(0)
+      that.playSound(1)
+      that.setData({
+        imageOfState: '../../images/ic_lock_blue.png',
+        isStart: false
+      })
+    } else if (index == 2) { //撤防
+      that.sendPayload(bledata.CMD_UNLOCK)
+      //that.flash(0)
+      that.playSound(2)
+      that.setData({
+        imageOfState: '../../images/ic_unlock_blue.png',
+        isStart: false
+      })
+    } else if (index == 3) {
+      that.sendPayload(bledata.CMD_CALL)
+    } else if (index == 4) {
+      that.sendPayload(bledata.CMD_MUTE)
+    }
+  },
+
+  //播放报警音
+  playBackgroundAudio: function () {
+    var that = this
+    let audioManager = wx.getBackgroundAudioManager()
+    audioManager.src = MP3_ID_ARRAY[3]
+    audioManager.title = '众鑫汇智控'
+    audioManager.play()
+    audioManager.onEnded(function () {
+      //console.info('播放结束，继续播放')
+      //仅前台报警
+      if (that.data.deviceState == 6 && !app.globalData.appHidden) {
+        that.playBackgroundAudio()
+      }
+
+      //test
+      // if (!app.globalData.appHidden) {
+      //   that.playBackgroundAudio()
+      // }
+    })
+  },
+
+  playSound: function (mp3IdIndex, loop = false) {
+    var that = this
+    this.stopAlarm()
+    let audioContext = wx.createInnerAudioContext()
+    audioContext.src = MP3_ID_ARRAY[mp3IdIndex]
+    audioContext.loop = loop
+    audioContext.play()
+    audioContext.onStop(function () {
+      console.warn('音频播放停止啦！！！')
+      that.setData({
+        alarmPlayer: null
+      })
+    })
+
+    //if (mp3IdIndex == 3 && loop) {//报警音
+    console.log('赋值播放器context');
+    this.setData({
+      alarmPlayer: audioContext
+    })
+    //}
+  },
+ //开启定时器读取RSSI，发送心跳包
   startTimer: function () {
     var that = this;
 
@@ -245,391 +593,6 @@ Page({
       timerId: timerId
     });
   },
-
-
-  onLoad: function () {
-    var that = this;
-
-    bledata.encryptPayload(bledata.queryState(), function (res) {
-      console.info('onLoad() - 查询状态的数据加密结果', res);
-      that.data.queryValue = util.hex2array(res.result.value);
-    });
-
-    wx.getBluetoothAdapterState({
-      success: (result) => {
-        that.setData({
-          bluetoothAvailable: result.available
-        })
-      }
-    })
-    //监听APP退后台
-    onfire.on('onAppHide_index', function (res) {
-      if (res.hidden) {
-        that.stopAlarm()
-      } else {
-        that.startTimer();
-      }
-    })
-    //监听蓝牙状态
-    onfire.on('onBluetoothAdapterStateChange_index', function (result) {
-      if(result.available) {
-        that.setData({
-          bluetoothAvailable: true
-        });
-      } else {
-        //停止报警
-        that.stopAlarm();
-        that.setData({
-          bluetoothAvailable: false,
-          connected: false,
-        });
-      }
-    });
-
-    // 监听设备的连接状态
-    onfire.on('onBLEConnectionStateChange_index', function (res) {
-      let mac = sputil.getMacByDeviceId(res.deviceId)
-      //自动选中最新连接的设备
-      if (res.connected) {
-        sputil.putDeviceMac(mac)
-        sputil.putDeviceId(res.deviceId)
-        that.startTimer()
-      } else {
-        //设备断线
-        if (sputil.getDeviceId() == res.deviceId) {
-          //停止报警
-          that.stopAlarm()
-        }
-      }
-
-      let curMac = sputil.getDeviceMac();
-      console.error(`curMac=${curMac}, that.data.connected=${that.data.connected}, connected=${res.connected}, deviceId=${res.deviceId}`);
-      //只处理当前选中的设备
-      if (curMac == '' || curMac == mac) {
-        if (that.data.connected == res.connected) return
-        that.setData({
-          connected: res.connected
-        })
-      }
-    })
-
-    //监听模块端发来的数据
-    onfire.on('onBLECharacteristicValueChange_index', function (res) {
-      //未选中的设备的数据，不处理
-      if (sputil.getDeviceId() != res.deviceId) return
-
-      if (sputil.isEncrypt()) {
-        bledata.decryptPayload(res.value, function (res2) {
-          let buffer = util.hex2array(res2.result.value)
-          that.handleRxData(buffer)
-        })
-      } else {
-        that.handleRxData(res.value)
-      }
-    })
-
-    //本地没有缓存的数据，则从云端获取一下
-    if(!sputil.getDevices()) {
-      this.getDevicesFromCloud();
-    }
-  }, //onLoad
-
-  //处理接收到的数据
-  handleRxData: function (buffer) {
-    var that = this
-    let value = new Uint8Array(buffer);
-    if (value.length >= 12) {
-      var state = value[11]
-
-      if (state < 0 && state > 7) {
-        return
-      }
-
-      if (that.data.deviceState != state)
-        that.setData({
-          deviceState: state
-        })
-
-      if (state != 6) {
-        that.stopAlarm()
-      }
-      if (state == 6) {
-        //6-报警循环播放
-        //that.playSound(3, true)//todo
-        that.playBackgroundAudio()
-        //that.flash2()
-      } else if (state == 5) {
-        //5-预报警指播一次
-        that.playSound(3, false)
-        //that.flash(0)
-      }
-
-      switch (state) {
-        case 0: //初始
-        case 1: //撤防
-        case 7: //匹配
-          //撤防图案
-          that.setData({
-            imageOfState: '../../images/ic_unlock_blue.png',
-            isStart: false
-          })
-          break;
-
-
-        case 3: //设防
-        case 4: //预警
-        case 5: //检测
-        case 6: //报警
-          //设防图案
-          that.setData({
-            imageOfState: '../../images/ic_lock_blue.png',
-            isStart: false
-          })
-          break;
-
-        case 2: //启动
-          that.setData({
-            isStart: true
-          })
-          break;
-      }
-    }
-  },
-
-  onUnload: function () {
-    onfire.un('onBLEConnectionStateChange_index')
-    onfire.un('onBLECharacteristicValueChange_index')
-    onfire.un('onBluetoothAdapterStateChange_index')
-    onfire.un('onAppHide_index')
-  },
-
-  onShow: function () {
-    let that = this;
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({
-        selected: 0,
-        bg_path: '/images/tab_ctrl_selected.png'
-      });
-    }
-    const selectedDevice = sputil.getSelectedDevice();
-    const isConnected = selectedDevice && bleproxy.isConnected(selectedDevice.deviceId);
-    that.startTimer();
-
-    console.error('xxxxxxxxxxxxxxxxxxxxxxxxxxx isUserAvailable=' + app.isUserAvailable());
-    console.error('xxxxxxxxxxxxxxxxxxxxxxxxxxx selectedDevice=', selectedDevice);
-
-    that.setData({
-      logo: sputil.getLogo(),
-      // connected: isConnected,
-      isCall: util.isCall(selectedDevice)
-    });
-
-    this.setCallButtonImage();
-
-    wx.getSystemInfo({
-      success: (result) => {
-        //console.log(result)
-        var sc = result.windowHeight / result.windowWidth
-        if (sc > 16 / 9) {
-          //宽高比大于16/9
-          that.setData({
-            topSpace: 48,
-            bottomLayoutMatginTop: 940,
-            motoImageWidth: 80,
-            startButtonWidth: 32
-          })
-        } else {
-          that.setData({
-            topSpace: 0,
-            bottomLayoutMatginTop: 720,
-            motoImageWidth: 60,
-            startButtonWidth: 26
-          })
-        }
-      },
-      fail: (err) => {
-        console.error(err)
-      }
-    })
-  },
-
-  sendPayload: function (cmdCode) {
-    if (!app.globalData.isNetworkOn) {
-      viewutil.toast('网络已断开');
-      return;
-    }
-
-    var that = this;
-    const deviceType = sputil.getDeviceType();
-    let deviceNum = deviceType == '' ? 0 : parseInt(deviceType.substring(3, 5), 16);
-    if (deviceNum > 0xA0) deviceNum -= 0xA0;
-    if (deviceNum > 0xB0) deviceNum -= 0xB0;
-    if (deviceNum > 0xC0) deviceNum -= 0xC0;
-    if (deviceNum > 0xD0) deviceNum -= 0xD0;
-    if (deviceNum > 0xE0) deviceNum -= 0xE0;
-    if (deviceNum > 0xF0) deviceNum -= 0xF0;
-    if (deviceNum == 1 || deviceNum == 4) {
-      //产品1 产品4 限制使用次数
-      const myuser = app.globalData.myuser;
-      console.log('index.js sendPayload()', myuser);
-
-      var isShare = false; //是否是通过扫码添加的设备
-      let devices = sputil.getDevices();
-      devices.forEach(element => {
-        if (sputil.getDeviceMac() == element.mac) {
-          isShare = element.openids.indexOf(app.globalData.openid, 0) == -1;
-        }
-      });
-
-      if (!isShare) {
-        //非分享设备，非VIP用户只可使用20次
-        if (!app.isUserAvailable() && myuser.use_times > 20) {
-          console.error('可免费使用20次，目前已使用次数：' + myuser.use_times);
-          wx.showModal({
-            content: '免费体验已达到上限！如需继续使用手机控车功能，需付费18元，永久使用。',
-            success: (res) => {
-              if (res.confirm) {
-                that.pay(1800);
-              }
-            }
-          });
-          return;
-        }
-      }
-    }
-
-    const deviceId = sputil.getDeviceId();
-    if (bleproxy.isConnected(deviceId)) {
-      app.globalData.myuser.use_times++;
-      let useTimes = app.globalData.myuser.use_times;
-      console.log('index.js sendPayload() - use_times=' + useTimes);
-      dbutil.updateUserUseTimes(useTimes, function (res2) {
-        console.log('更新用户使用次数 ' + useTimes, res2);
-      });
-    }
-
-    if (deviceId != '') {
-      var arr = new Uint8Array(util.hex2array(sputil.getSensitivity()));
-      let sensitivity = arr[0];
-      let limitSpeed = arr[1] == 1;
-      let volume = arr[2];
-      if (sputil.getDeviceType() == '+BA02') {
-        //最后一个感应参数0就是为了使第七个字节变为2
-        bleproxy.send(deviceId, bledata.mkData(cmdCode, sensitivity, limitSpeed, volume, 4, 0));
-      } else {
-        bleproxy.send(deviceId, bledata.mkData(cmdCode, sensitivity, limitSpeed, volume, 4));
-      }
-    }
-  },
-
-
-  onTouchStart: function (e) {
-    //console.log("TouchStart", e)
-    let index = parseInt(e.currentTarget.dataset.btnindex)
-    //console.log("TouchStart", index)
-    //console.log("typeof index: " + typeof (index) + ", index=" + index)
-    this.setImage(index, IMAGE_ARRAY[index + 5])
-  },
-
-  onTouchEnd: function (e) {
-    if (!this.data.connected) {
-      return;
-    }
-    console.log("TouchEnd", e)
-    let that = this
-
-    let index = parseInt(e.currentTarget.dataset.btnindex)
-    console.log("TouchEnd", index)
-    that.setImage(index, IMAGE_ARRAY[index]);
-    if (this.data.selectedBtn == 0 && index == 0) {
-      //关闭“启动”
-      index = 2;//解锁
-    }
-    that.setData({
-      selectedBtn: index
-    });
-
-    if (index == 0) {
-      //启动
-      that.sendPayload(bledata.CMD_START)
-      that.setData({
-        isStart: true
-      })
-
-    } else if (index == 1) {
-      //设防
-      that.sendPayload(bledata.CMD_LOCK)
-      //that.flash(0)
-      that.playSound(1)
-      that.setData({
-        imageOfState: '../../images/ic_lock_blue.png',
-        isStart: false
-      })
-
-    } else if (index == 2) {
-      //撤防
-      that.sendPayload(bledata.CMD_UNLOCK)
-      //that.flash(0)
-      that.playSound(2)
-      that.setData({
-        imageOfState: '../../images/ic_unlock_blue.png',
-        isStart: false
-      })
-    } else if (index == 3) {
-      that.sendPayload(bledata.CMD_CALL)
-    } else if (index == 4) {
-      that.sendPayload(bledata.CMD_MUTE)
-    }
-  },
-
-  //播放报警音
-  playBackgroundAudio: function () {
-    var that = this
-    let audioManager = wx.getBackgroundAudioManager()
-    audioManager.src = MP3_ID_ARRAY[3]
-    audioManager.title = '众鑫汇智控'
-    audioManager.play()
-    audioManager.onEnded(function () {
-      //console.info('播放结束，继续播放')
-      //仅前台报警
-      if (that.data.deviceState == 6 && !app.globalData.appHidden) {
-        that.playBackgroundAudio()
-      }
-
-      //test
-      // if (!app.globalData.appHidden) {
-      //   that.playBackgroundAudio()
-      // }
-    })
-  },
-
-  test(e) {
-    console.log('test()')
-    //this.playBackgroundAudio()
-  },
-
-  playSound: function (mp3IdIndex, loop = false) {
-    var that = this
-    this.stopAlarm()
-    let audioContext = wx.createInnerAudioContext()
-    audioContext.src = MP3_ID_ARRAY[mp3IdIndex]
-    audioContext.loop = loop
-    audioContext.play()
-    audioContext.onStop(function () {
-      console.warn('音频播放停止啦！！！')
-      that.setData({
-        alarmPlayer: null
-      })
-    })
-
-    //if (mp3IdIndex == 3 && loop) {//报警音
-    console.log('赋值播放器context');
-    this.setData({
-      alarmPlayer: audioContext
-    })
-    //}
-  },
-
   stopAlarm: function () {
     var audioContext = this.data.alarmPlayer
     if (audioContext != null) {
@@ -651,7 +614,6 @@ Page({
           imageOfStartBtn: imageurl
         })
         break;
-
       case 1: //LT
         this.setData({
           imageOfLtBtn: imageurl
@@ -679,12 +641,26 @@ Page({
 
     //console.info("### " + this.data.imageOfStartBtn)
   },
+  setCallButtonImage() {
+    let imageName;
+    if(this.data.isCall) {
+      if(this.data.selectedBtn == 3) {
+        imageName = 'btn_call_active.png';
+      } else {
+        imageName = 'btn_call.png';
+      }
+    } else {
+      if(this.data.selectedBtn == 3) {
+        imageName = 'btn_open_active.png';
+      } else {
+        imageName = 'btn_open.png';
+      }
+    }
+    this.setData({
+      callBtnConnectedImage: imageName
+    });
+  },
 
-
-  /**
-   * 闪灯
-   * @param {*} count 计数器 
-   */
   flash: function (count) {
     var that = this
     setTimeout(function () {
@@ -701,10 +677,6 @@ Page({
     }, 500)
   },
 
-  /**
-   * 
-   * @param {一直闪} count 
-   */
   flash2: function (count = 0) {
     var that = this
     setTimeout(function () {
@@ -747,18 +719,15 @@ Page({
       fail: console.error,
     })
   },
-
-  onHide: function () {
-    console.warn('index.js onHide()')
-    this.stopAlarm()
-  },
-
   testConnectionState(e) {
     let connected = e.detail.value;
     console.info("connected =", connected);
     this.setData({
       connected: connected
     });
-  }
-
+  },
+  test(e) {
+    console.log('test()')
+    //this.playBackgroundAudio()
+  },
 })
