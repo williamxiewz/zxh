@@ -1,4 +1,3 @@
-
 const HEX = '0123456789ABCDEF'
 
 const formatTime = date => {
@@ -157,13 +156,13 @@ const uint8ToHex = (byte) => {
 const mac2DeviceId = (mac) => {
   if (mac.match(/[0-9A-Fa-f]{12}/)) {
     let arr = new Uint8Array(hex2array(mac));
-    let macstd = '';
-    for (let i = arr.byteLength - 1; i >= 0; i--) {
-      macstd += uint8ToHex(arr[i]);
-      if (i > 0) {
-        macstd += ':';
-      }
-    }
+    let macstd = Array.from(arr).map(uint8ToHex).join(':');
+    // for (let i = arr.byteLength - 1; i >= 0; i--) {
+    //   macstd += uint8ToHex(arr[i]);
+    //   if (i > 0) {
+    //     macstd += ':';
+    //   }
+    // }
     console.log(`mac2DeviceId() - ${mac} -> ${macstd}`);
     return macstd;
   } else {
@@ -172,15 +171,27 @@ const mac2DeviceId = (mac) => {
   }
 }
 
-const getDeviceNum = (deviceType) => {
+const deviceTypeNum = (deviceType) => {
   let num = parseInt(deviceType.substring(3, 5), 16);
-  if (num > 0xA0) num -= 0xA0;
-  if (num > 0xB0) num -= 0xB0;
-  if (num > 0xC0) num -= 0xC0;
-  if (num > 0xD0) num -= 0xD0;
-  if (num > 0xE0) num -= 0xE0;
-  if (num > 0xF0) num -= 0xF0;
+  if(num > 0xA0) num -= 0xA0;
+  if(num > 0xB0) num -= 0xB0;
+  if(num > 0xC0) num -= 0xC0;
+  if(num > 0xD0) num -= 0xD0;
+  if(num > 0xE0) num -= 0xE0;
+  if(num > 0xF0) num -= 0xF0;
   return num;
+}
+
+//是否是带寻车功能的设备
+const isCall = (device) => {
+  if(!device) {
+    return true;
+  }
+  //num为9，版本以4结尾的是“开座包”，其他是“寻车”
+  let num = getDeviceNum(device.type);
+  let ver = device.version;
+  let isKzb = num == 9 && (ver.endsWith('4') || ver.endsWith('6'));
+  return !isKzb;
 }
 
 module.exports = {
@@ -193,5 +204,6 @@ module.exports = {
   arraycopy: arraycopy,
   getCurrentDate: getCurrentDate,
   mac2DeviceId: mac2DeviceId,
-  getDeviceNum: getDeviceNum
+  deviceTypeNum: deviceTypeNum,
+  isCall: isCall
 }

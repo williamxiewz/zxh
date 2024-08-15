@@ -24,10 +24,6 @@
     </view>
 
     <view class="list">
-      <!-- <view class="container-h" style="align-items:center;justify-content:center;" bindtap="scanDevice">
-        <text class="request-text">搜索设备</text>
-        <icon type="search" size="32" />
-      </view> -->
       <view class="list-item">
         <text class="request-text">我的设备</text>
       </view>
@@ -36,7 +32,7 @@
           <view class="radio {{mac != '' && mac == item.mac? 'radio-checked':'radio-unchecked'}}" bindtap="addDevice"
             bindlongpress="removeDevice" data-item="{{item}}">
             <!-- <radio value="{{mac}}" checked="{{deviceIndex == item.index}}" /> -->
-            <view style="color:{{ item.deviceId=='' || item.connected? 'black':'#dddddd'}};">{{item.name}}
+            <view style="color:{{ item.name=='+' || item.connected? 'black':'#dddddd'}};">{{item.name}}
               {{item.version}}</view>
           </view>
         </label>
@@ -103,13 +99,20 @@
           </view>
         </view>
       </view>
-
       <!-- 版本信息 -->
       <view class="list-item">
         <text class="request-text" style="flex:1;">版本信息</text>
-        <text class="request-text">V1.0.1</text>
+        <text class="request-text">V1.0.3</text>
+      </view>
+      <!-- 客服 -->
+      <view class="list-item">
+        <button class="request-text" style="flex:1;" open-type="contact">联系客服</button>
+      </view>
+      <view style="height: 100rpx;width: 100%;">
       </view>
     </view>
+    <!-- <button bindtap="testPay">测试支付</button> -->
+    <!-- <button bindtap="test">测试</button> -->
   </scroll-view>
 
 </view>
