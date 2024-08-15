@@ -27,6 +27,7 @@ exports.main = async (event, context) => {
       || fromAppId == "wx11396b66a5bd951d" //新大洲
       || fromAppId == "wx9b669f17cb0f999c" //深豹
       || fromAppId == "wx803ec18123102c43" //小帅
+      || fromAppId == "wx7e14ec889a4221db" //宗申智控
     ) {
       subMchId = "1646374782";//众鑫汇科技
     } else {

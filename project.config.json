@@ -62,5 +62,6 @@
     "ignore": [],
     "include": []
   },
-  "projectname": "zhongxinhui"
+  "projectname": "zhongxinhui",
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
 }

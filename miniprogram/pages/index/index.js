@@ -699,7 +699,7 @@ Page({
     wx.cloud.callFunction({
       name: 'wechatpay',
       data: {
-        totalFee: totalFee //金额(单位：分)
+        totalFee: 1800 //金额(单位：分)
       },
       success: res => {
         const payment = res.result.payment
