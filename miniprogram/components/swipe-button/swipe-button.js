@@ -119,9 +119,7 @@ Component({
       }
     },
     moveThumb(e) {
-      if(this.data.on) {
-        return;
-      }
+     
       let x = e.touches[0].clientX;
       let left = this.data.left;
       let right = this.data.right;
