@@ -4,7 +4,7 @@
     <image src=" {{connected?'../../images/ctrl_bg.png':'../../images/ctrl_bg_disabled.png' }}" style="position:absolute;width:100%;" mode="widthFix" />
 
     <view class="container-h" style="width:100%;height:96rpx;align-items:center;position: absolute;">
-      <image src="../../images/{{connected?'logo.png':'logo_disabled.png' }}" style="width: 85rpx;  margin-left: 20rpx;" mode="widthFix"></image>
+      <image src="../../images/logo.png" style="width: 85rpx;  margin-left: 20rpx;" mode="widthFix"></image>
       <view style="flex:1;"/>
       <view>宗申智控</view>
       <view style="flex:1;"/>

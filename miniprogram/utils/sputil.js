@@ -144,6 +144,7 @@ const setEncrypt = (encrypt) => {
 
 const isSendEnableGanyingCmd = (deviceId) => {
   let v = wx.getStorageSync('is_send_ganying_' + deviceId);
+  console.log('isSendEnableGanyingCmd ,deviceId  ',v ,deviceId)
   return v != '' && v;
 }
 

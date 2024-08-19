@@ -17,7 +17,7 @@ const DEVICE_STATES = [
   '设防', //3
   '预警', //4
   '监测', //5
-  '报警' //6
+  '报警'  //6
 ]
 
 const ADD_DEVICE_TIMEOUT = 30000 //30秒配对超时
@@ -550,6 +550,7 @@ Page({
         bleproxy.stopLeScan();
         //
         console.log('配对连接设备>>>')
+        console.log('配对连接设备>>>,ganyingAvailable',ganyingAvailable)
         if (ganyingAvailable) {
           //
         }
@@ -606,6 +607,7 @@ Page({
 
     console.info('value.length=' + value.length + ', value[6]=' + value[6]);
     console.info('isSharedDevice=' + that.isSharedDevice() + ', isUserAvailable=' + app.isUserAvailable());
+    console.log('value',value)
     var deviceState = '';
     if (value.length >= 12) {
       let deviceType = sputil.getDeviceTypeById(deviceId);
@@ -614,9 +616,12 @@ Page({
         //激活用户绑定的设备，才处理感应功能的数据
         if (!that.isSharedDevice() && app.isUserAvailable()) {
           console.info('value[12]=' + value[12]);
+          console.info('激活用户绑定的设备，才处理感应功能的数据 value[12]=' + value[12],sputil.isSendEnableGanyingCmd(deviceId));
+
           //配对成功发送开感应的指令
           if (sputil.isSendEnableGanyingCmd(deviceId)) {
-            sputil.setSendEnableGanyingCmd(deviceId, false); //重置该标志
+            console.info('配对成功发送开感应的指令' );
+            sputil.setSendEnableGanyingCmd(deviceId, false); //重置该标志0
             //感应距离为1表示感应关闭
             let ganyingValue = value[12] == 1 ? 3 : value[12];
             that.sendEnanbleGanyingCmd(deviceId, ganyingValue);
@@ -900,6 +905,7 @@ Page({
     setTimeout(function () {
       //设置一下标志，在收到上报的状态数据后再发送开感应的指令
       sputil.setSendEnableGanyingCmd(deviceId, true);
+      console.log('sputil 设置后isSendEnableGanyingCmd',sputil.isSendEnableGanyingCmd)
       if (app.globalData.platform == 'android') {
         console.info('android透传绑定成功，发起HID配对');
         //发起蓝牙HID配对，仅针对Android手机
