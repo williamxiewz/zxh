@@ -14,8 +14,7 @@
     <view class="userinfo" style="background:white;">
       <view class="userinfo-avatar" style="background-image: url({{avatarUrl}})"></view>
       <button wx:if="{{canIUseGetUserProfile}}" bindtap="getUserProfile" class="userinfo-nickname">{{nickname}}</button>
-      <button wx:else open-type="getUserInfo" bindgetuserinfo="onGetUserInfo"
-        class="userinfo-nickname">{{nickname}}</button>
+      <button wx:else open-type="getUserInfo" bindgetuserinfo="onGetUserInfo" class="userinfo-nickname">{{nickname}}</button>
       <view style="display:{{showJiHuoButton? 'block':'none'}};padding-top:10rpx;padding-right:60rpx;">
         <button wx:if="{{showGetPhoneNumberButton}}" class="button_save" open-type="getPhoneNumber"
           bindgetphonenumber="getPhoneNumber" style="width:180rpx;padding: 0px 0px;">激活</button>
