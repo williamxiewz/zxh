@@ -59,7 +59,7 @@ App({
       //前面的判断依赖 bleproxy.isBluetoothAvailable() 所以 bleproxy.setBluetoothAvailable 要放在后面
       bleproxy.setBluetoothAvailable(result.available)
       console.log('bleproxy.isBluetoothAvailable=' + bleproxy.isBluetoothAvailable())
-      
+
       onfire.fire('onBluetoothAdapterStateChange_index', result)
     })
 
@@ -368,6 +368,7 @@ App({
     });
   },
 
+  // 用户是否可用
   isUserAvailable() {
     const device = sputil.getSelectedDevice();
     if (device == null) return true;
@@ -388,7 +389,7 @@ App({
     return false;
   },
 
-  //免费型号
+  //是否免费型号设备
   isFreeDevice(device) {
     console.info('isFreeDevice() - device =', device);
     if (device.type == '') return true;
