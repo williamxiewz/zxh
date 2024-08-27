@@ -5,13 +5,34 @@ const sputil = require('/sputil.js')
 const bledata = require('/bledata.js')
 const log = require('/log.js')
 
+
+//蓝牙未开启时的提示框
+const showModal = (cancelable = false) => {
+  console.log('xxxxxxxxxxxxxx isBluetoothAvailable=' + isBluetoothAvailable)
+  wx.showModal({
+    title: '提示',
+    content: '蓝牙未开启，请先开启蓝牙后重新进入小程序',
+    confirmText: '好的',
+    showCancel: false,
+    success: (res) => {
+      console.log('xxxxxxxxxxxxxx isBluetoothAvailable=' + isBluetoothAvailable, res)
+      if (res.confirm) {
+        if (!cancelable && !isBluetoothAvailable) {
+          showModal()
+        }
+      }
+    }
+  })
+}
+
+
 //已连接的设备id
 const connectedIdArr = []
 var currentDeviceId = '';
 
 const setCurrentDeviceId = (deviceId) => {
   currentDeviceId = deviceId;
-  console.error('currentDeviceId = ' + currentDeviceId);
+  // console.error('currentDeviceId = ' + currentDeviceId);
 }
 
 const getCurrentDeviceId = () => {
@@ -99,20 +120,6 @@ const sendToConnectedDevices = (value, isWriteCharacteristic = false) => {
   });
 }
 
-const send = (deviceId, value, showToast = false) => {
-  if (sputil.isEncrypt()) {
-    bledata.encryptPayload(value, function (res) {
-      console.info('send() - 数据加密结果', res)
-      let value = util.hex2array(res.result.value)
-      writeBLECharacteristic(deviceId, value, showToast)
-    })
-
-  } else {
-    writeBLECharacteristic(deviceId, value, showToast)
-  }
-}
-
-
 const writeBLECharacteristic = (deviceId, value, showToast = false) => {
   wx.writeBLECharacteristicValue({
     deviceId: deviceId,
@@ -134,10 +141,20 @@ const writeBLECharacteristic = (deviceId, value, showToast = false) => {
   })
 }
 
-/**
- * 连接设备
- * @param {*} deviceId 
- */
+const send = (deviceId, value, showToast = false) => {
+  if (sputil.isEncrypt()) {
+    bledata.encryptPayload(value, function (res) {
+      console.info('send() - 数据加密结果', res)
+      let value = util.hex2array(res.result.value)
+      writeBLECharacteristic(deviceId, value, showToast)
+    })
+
+  } else {
+    writeBLECharacteristic(deviceId, value, showToast)
+  }
+}
+
+//连接设备
 const connect = (deviceId) => {
   if (!deviceId) {
     console.warn('bleproxy.js connect() >>> deviceId无效 ' + deviceId);
@@ -214,7 +231,6 @@ const connect = (deviceId) => {
   })
 }
 
-
 //断开连接
 const disconnect = deviceId => {
   wx.closeBLEConnection({
@@ -228,7 +244,6 @@ const disconnect = deviceId => {
   });
 }
 
-
 var bluetoothAvailable = false; //状态未变的情况下Android手机会一直回调onBluetoothAdapterStateChange，代码自己记录一下状态
 
 const isBluetoothAvailable = () => {
@@ -238,26 +253,6 @@ const isBluetoothAvailable = () => {
 const setBluetoothAvailable = (available) => {
   bluetoothAvailable = available
 }
-
-//蓝牙未开启时的提示框
-const showModal = (cancelable = false) => {
-  console.log('xxxxxxxxxxxxxx isBluetoothAvailable=' + isBluetoothAvailable)
-  wx.showModal({
-    title: '提示',
-    content: '蓝牙未开启，请先开启蓝牙后重新进入小程序',
-    confirmText: '好的',
-    showCancel: false,
-    success: (res) => {
-      console.log('xxxxxxxxxxxxxx isBluetoothAvailable=' + isBluetoothAvailable, res)
-      if (res.confirm) {
-        if (!cancelable && !isBluetoothAvailable) {
-          showModal()
-        }
-      }
-    }
-  })
-}
-
 
 //初始化蓝牙
 const initBluetooth = () => {
@@ -343,14 +338,12 @@ const initBluetooth = () => {
         }
       })
 
-      //////////////////////////////////////
+      
     },
   })
 
 }
-
-
-
+//关闭蓝牙
 const close = () => {
   stopLeScan();
   wx.closeBluetoothAdapter({

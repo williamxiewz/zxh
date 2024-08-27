@@ -21,6 +21,14 @@ const TYPE_PATTERN = /^[_+]BA[A-F\d][\d]$/;
 const TYPE_PATTERN_8 = /^[_+]BA[A-F\d]8$/;
 
 App({
+  globalData: {
+    openid: '',
+    myuser: {},
+    isNetworkOn: true,
+    appHidden: true,
+    isActivated: false //账号是否已通过激活码激活
+  },
+
   onLaunch: function () {
     console.log('dbutil.xxx =', util.mac2DeviceId('2B021DD25B4C'));
     if (!wx.cloud) {
@@ -51,7 +59,7 @@ App({
       //前面的判断依赖 bleproxy.isBluetoothAvailable() 所以 bleproxy.setBluetoothAvailable 要放在后面
       bleproxy.setBluetoothAvailable(result.available)
       console.log('bleproxy.isBluetoothAvailable=' + bleproxy.isBluetoothAvailable())
-
+      
       onfire.fire('onBluetoothAdapterStateChange_index', result)
     })
 
@@ -84,7 +92,7 @@ App({
         if (mfrLength != 17 && mfrLength != 19) {
           continue
         }
-        //console.log('advertisData.byteLength=' + device.advertisData.byteLength, device.advertisData)
+        console.log('advertisData.byteLength=' + device.advertisData.byteLength, device.advertisData)
         let mfrBuffer = new Uint8Array(device.advertisData);
         let start = 0;
         if (mfrLength == 19 && mfrBuffer[0] == 0xff && mfrBuffer[1] == 0xff) {
@@ -98,9 +106,10 @@ App({
         start += 5;
         let version = util.arrayBufferToString(device.advertisData.slice(start, start + 3));
 
+        //### BLE Manufacturer Data:                ZS1    2B001DDD900F +BA04        V00
         console.info(`### BLE Manufacturer Data: ${mfrHead} ${mac} ${deviceType} ${version}`);
-
-        let b1 = (mfrHead == 'ZS1' || mfrHead == 'ZS2'||mfrHead == 'ZXH' || mac == '2B021DD25B4C') && TYPE_PATTERN.test(deviceType);
+        
+        let b1 = (mfrHead == 'ZS1' || mfrHead == 'ZS2' || mac == '2B021DD25B4C') && TYPE_PATTERN.test(deviceType);
         let b2 = mfrHead == 'ZXH' && TYPE_PATTERN_8.test(deviceType);
         if (b1 || b2) {
           let num = parseInt(deviceType.substring(3, 5), 16);
@@ -109,6 +118,7 @@ App({
           sputil.putDeviceIdAndMac(device.deviceId, mac);
           sputil.putDeviceType(device.deviceId, deviceType);
 
+          //已缓存的设备列表
           const devices = sputil.getDevices();
           var contains = false;
           if (typeof (devices) == 'object') {
@@ -210,6 +220,14 @@ App({
       hidden: false
     })
     this.globalData.appHidden = false;
+  },
+
+  onHide: function () {
+    bleproxy.stopLeScan()
+    this.globalData.appHidden = true
+    onfire.fire('onAppHide_index', {
+      hidden: true
+    })
   },
 
   getDevicesFromCloud() {
@@ -322,15 +340,6 @@ App({
     });
   },
 
-  onHide: function () {
-    bleproxy.stopLeScan()
-    this.globalData.appHidden = true
-    onfire.fire('onAppHide_index', {
-      hidden: true
-    })
-  },
-
-
   getOpenid: async function () {
     var that = this
     // 调用云函数
@@ -358,7 +367,6 @@ App({
       // });
     });
   },
-
 
   isUserAvailable() {
     const device = sputil.getSelectedDevice();
@@ -389,13 +397,7 @@ App({
     //   return false;// BA04 是付费版本，带感应功能
     // }
     return num >= 7;
-  },
-
-  globalData: {
-    openid: '',
-    myuser: {},
-    isNetworkOn: true,
-    appHidden: true,
-    isActivated: false //账号是否已通过激活码激活
   }
+
+
 })

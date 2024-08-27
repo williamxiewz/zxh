@@ -1,6 +1,4 @@
-//index.js
 const app = getApp()
-
 const sputil = require('../../utils/sputil.js')
 const bleproxy = require('../../utils/bleproxy.js')
 const bledata = require('../../utils/bledata.js')

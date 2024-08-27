@@ -1,6 +1,9 @@
 var cloud;
 var isinitialized = false;
 
+const isInit = () => isinitialized;
+const getCloud = () => cloud;
+
 const initCloud = async () => {
   // 声明新的 cloud 实例
   cloud = new wx.cloud.Cloud({
@@ -14,6 +17,7 @@ const initCloud = async () => {
   console.log('zxh cloud init success');
 }
 
+// 获取 openid
 const getOpenid = async (success) => {
   cloud.callFunction({
     name: 'login',
@@ -24,7 +28,7 @@ const getOpenid = async (success) => {
     }
   });
 }
-
+// 微信支付
 const pay = async (success) => {
   cloud.callFunction({
     name: 'wechatpay',
@@ -35,7 +39,7 @@ const pay = async (success) => {
     fail: console.error,
   });
 }
-
+// 绑定设备
 const bindDevice = (myDevice, complete) => {
   cloud.callFunction({
     name: 'myclouddb',
@@ -46,7 +50,7 @@ const bindDevice = (myDevice, complete) => {
     complete: complete
   })
 }
-
+// 获取设备
 const getDevices = (complete) => {
   cloud.callFunction({
     name: 'myclouddb',
@@ -57,38 +61,8 @@ const getDevices = (complete) => {
   })
 }
 
-const getUser = async (complete) => {
-  await cloud.callFunction({
-    name: 'myclouddb',
-    data: {
-      action: 'getUser'
-    },
-    complete: complete
-  });
-}
 
-const updateUserIsVip = (isVip, complete) => {
-  cloud.callFunction({
-    name: 'myclouddb',
-    data: {
-      action: 'updateUserIsVip',
-      isVip: isVip
-    },
-    complete: complete
-  })
-}
-
-const updateUserUseTimes = (useTimes, complete) => {
-  cloud.callFunction({
-    name: 'myclouddb',
-    data: {
-      action: 'updateUserUseTimes',
-      useTimes: useTimes
-    },
-    complete: complete
-  })
-}
-
+// 删除设备
 const delDevice = (myDevice, complete) => {
   cloud.callFunction({
     name: 'myclouddb',
@@ -100,6 +74,7 @@ const delDevice = (myDevice, complete) => {
   })
 }
 
+// 通过二维码添加设备
 const addDeviceByQRCode = (qrcode, platform, complete) => {
   cloud.callFunction({
     name: 'myclouddb',
@@ -112,6 +87,18 @@ const addDeviceByQRCode = (qrcode, platform, complete) => {
   })
 }
 
+// 获取用户信息
+const getUser = async (complete) => {
+  await cloud.callFunction({
+    name: 'myclouddb',
+    data: {
+      action: 'getUser'
+    },
+    complete: complete
+  });
+}
+
+// 获取用户userinfo
 const getWXUserInfo = (complete) => {
   cloud.callFunction({
     name: 'myclouddb',
@@ -122,6 +109,7 @@ const getWXUserInfo = (complete) => {
   })
 }
 
+// 添加 userinfo
 const addWXUserInfo = (userInfo, complete) => {
   cloud.callFunction({
     name: 'myclouddb',
@@ -133,11 +121,28 @@ const addWXUserInfo = (userInfo, complete) => {
   })
 }
 
-const getCloud = () => {
-  return cloud;
+// 更新用户 VIP
+const updateUserIsVip = (isVip, complete) => {
+  cloud.callFunction({
+    name: 'myclouddb',
+    data: {
+      action: 'updateUserIsVip',
+      isVip: isVip
+    },
+    complete: complete
+  })
 }
-
-const isInit = () => isinitialized;
+// 更新使用次数
+const updateUserUseTimes = (useTimes, complete) => {
+  cloud.callFunction({
+    name: 'myclouddb',
+    data: {
+      action: 'updateUserUseTimes',
+      useTimes: useTimes
+    },
+    complete: complete
+  })
+}
 
 module.exports = {
   getUser: getUser,

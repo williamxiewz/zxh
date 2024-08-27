@@ -16,6 +16,7 @@ const CMD_START = 5
  * @param {*} limitSpeed true-限速，false-不限速
  * @param {*} volume 限速提示音量1~3
  * @param {*} optCode 1-标识设置灵敏度，2-表示设置限速开关，3-表示设置限速提示音量，4-控制功能，5-感应功能（BA02新增）
+ * @param {*} ganying 
  */
 const mkData = (cmdCode, sensitivity, limitSpeed, volume, optCode = 0, ganying) => {
   const ganyingType = typeof (ganying);

@@ -101,7 +101,7 @@
       <!-- 版本信息 -->
       <view class="list-item">
         <text class="request-text" style="flex:1;">版本信息</text>
-        <text class="request-text">V1.0.3</text>
+        <text class="request-text">{{appVersion}}</text>
       </view>
       <!-- 客服 -->
       <view class="list-item">
