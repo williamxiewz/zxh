@@ -1,4 +1,3 @@
-// miniprogram/pages/activation/activation.js
 const app = getApp()
 const viewutil = require('../../utils/viewutil.js')
 const httputil = require('../../utils/httputil.js')

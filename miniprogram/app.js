@@ -377,17 +377,20 @@ App({
       return true; //免费类型设备
     }
 
+    //付费 产品查看是否付费
+
     //缓存查看 是否已经付费 
     let b = sputil.isPaySuccess();
     if (b) {
       return true;
     }
+
     //已经付费或者已经绑定激活码，视为激活用户，使用不受限制
     if (this.globalData.myuser) {
       var isVip = this.globalData.myuser.hasOwnProperty('is_vip') && this.globalData.myuser.is_vip;
       return isVip || this.globalData.isActivated;
     }
-    
+
     return false;
   },
 

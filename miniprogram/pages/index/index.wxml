@@ -95,7 +95,6 @@
     </view>
 
     <view class="container-r" style="margin-top: 140rpx;z-index: 2;">
-   
       <swipe-button style="width: 80%;position: absolute;" bindvaluechange="onStartValueChange" 
       enabled="{{connected}}" on="{{connected&&selectedBtn==0}}"/>
     </view>
