@@ -29,6 +29,7 @@ App({
     isActivated: false //账号是否已通过激活码激活
   },
 
+///------------------------------------------------------------------
   onLaunch: function () {
     console.log('dbutil.xxx =', util.mac2DeviceId('2B021DD25B4C'));
     if (!wx.cloud) {
@@ -229,6 +230,7 @@ App({
       hidden: true
     })
   },
+///------------------------------------------------------------------
 
   getDevicesFromCloud() {
     dbutil.getDevices(res => {
