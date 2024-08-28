@@ -24,7 +24,6 @@ const ADD_DEVICE_TIMEOUT = 30000 //30秒配对超时
 const ADD_DEVICE_MSG = '请使用原车遥控器同时按住锁键和开锁键3秒，等待主机“DI”一声提示后松开按键，等待防盗器主机 BI/BI/BI 响三声后即配对成功。'
 //我的设备MAC：383995486621
 Page({
-
   data: {
     appVersion:'V1.0.0',
     canIUseGetUserProfile: false,
@@ -100,332 +99,10 @@ Page({
     ]
   },
 
-  jiHuo() {
-    this.setData({
-      showActionsheet: true
-    });
-  },
 
-  btnClick(e) {
-    console.log('点击的激活方式', e);
-    this.setData({
-      showActionsheet: false
-    });
-    if (e.detail.value == 1) {
-      console.log('微信支付');
-      this.pay();
-    } else if (e.detail.value == 2) {
-      console.log('激活码');
-      wx.navigateTo({
-        url: '../activation/activation',
-      })
-    }
-  },
-
-  testPay(e) {
-    this.pay();
-  },
-
-  getPhoneNumber(e) {
-    console.log('getPhoneNumber', e)
-    var that = this;
-    var cloudIDType = typeof (e.detail.cloudID);
-    if (cloudIDType != 'string') {
-      console.error('getPhoneNumber() - cloudIDType=' + cloudIDType)
-      return;
-    }
-    dbutil.cloud.callFunction({
-      name: 'openapi',
-      data: {
-        action: 'getOpenData',
-        openData: {
-          list: [
-            e.detail.cloudID,
-          ]
-        }
-      }
-    }).then(res => {
-      console.log('[getPhoneNumber] 调用成功：', res);
-      let phoneNumber = res.result.list[0].data.phoneNumber;
-      console.info("获得手机号", phoneNumber);
-      sputil.putPhoneNumber(phoneNumber);
-      that.setData({
-        showGetPhoneNumberButton: false
-      });
-      that.jiHuo();
-    }).catch(console.error);
-  },
-
-  showPairDeviceDialog: function () {
-    var self = this
-
-    const countDown = self.selectComponent('.control-count-down');
-    countDown.reset()
-    countDown.start()
-
-    self.setData({
-      pairdevice: {
-        title: '',
-        hidden: false,
-        text: ADD_DEVICE_MSG,
-        time: ADD_DEVICE_TIMEOUT
-      }
-    })
-
-    //开始扫描设备
-    bleproxy.startLeScan(true, ADD_DEVICE_TIMEOUT)
-
-    let connectTimerId = setTimeout(function () {
-      viewutil.toast('匹配未成功，请重新匹配操作')
-      if (self.data.myDevice != null) {
-        bleproxy.disconnect(self.data.myDevice.deviceId)
-      }
-      self.hidePairDeviceDialog() //超时取消配对
-
-    }, ADD_DEVICE_TIMEOUT)
-
-    self.setData({
-      connectTimerId: connectTimerId
-    })
-  },
-
-  //用户取消配对
-  pairdeviceCancel: function () {
-    var that = this
-    console.info('取消配对')
-    clearTimeout(that.data.connectTimerId)
-    if (that.data.myDevice != null) {
-      bleproxy.disconnect(that.data.myDevice.deviceId)
-    }
-    that.hidePairDeviceDialog()
-  },
-
-  //跟设备端配对成功
-  pairdeviceSuccess: function () {
-    var that = this
-
-    let myDevice = that.data.myDevice
-    if (myDevice == null) return
-
-    console.info('pairdeviceSuccess')
-
-    dbutil.bindDevice(myDevice, function (res) {
-      //console.info('pairdeviceSuccess', res)
-      if (res.result.code == 0) {
-        that.doSuccess(res.result.device);
-      } else {
-        viewutil.toast(res.result.msg)
-        // code 见云函数 myclouddb 中 bindeDevice 方法
-        if (res.result.code == 2) {
-          //设备已被其他用户绑定
-          bleproxy.disconnect(myDevice.deviceId)
-        }
-      }
-    })
-
-    clearTimeout(that.data.connectTimerId)
-    that.hidePairDeviceDialog()
-  },
-
-  doSuccess: function (myDevice) {
-    var that = this;
-    viewutil.toast('匹配成功');
-    console.info('配对成功!', myDevice);
-    var mac = '';
-
-    that.data.devices.forEach(element => {
-      if (element.deviceId == '') {
-        if (mac == '') {
-          mac = myDevice.mac
-          element.name = myDevice.name
-          element.deviceId = myDevice.deviceId
-          element.mac = myDevice.mac
-          element.version = myDevice.version
-          element.connected = true
-          element.openid = myDevice.openid
-          element.openids = myDevice.openids
-          element.type = myDevice.type
-          element.lend_code = myDevice.lend_code
-        }
-      }
-    });
-
-    let devices = that.data.devices;
-
-    that.setData({
-      mac: mac,
-      connected: true,
-      bleState: '已连接',
-      devices: devices,
-      deviceId: myDevice.deviceId,
-      ganyingAvailable: that.isGanyingAvailable(myDevice)
-    });
-
-    sputil.putDeviceMac(myDevice.mac);
-    sputil.putDeviceId(myDevice.deviceId);
-    bleproxy.setCurrentDeviceId(myDevice.deviceId);
-    sputil.putDevices(devices);
-
-    //绑定成功后
-    if (app.isUserAvailable()) {
-      //发起HID配对
-      if (that.isGanyingAvailable(myDevice)) {
-        that.requestHID(myDevice);
-      }
-    } else {
-      //未激活的用户，配对成功后显示“激活”按钮
-      const myuser = app.globalData.myuser;
-      if (myuser.use_times > 20) {
-        that.setData({
-          showJiHuoButton: false //true
-        });
-      }
-    }
-  },
-
-  //隐藏配对对话框
-  hidePairDeviceDialog: function () {
-    this.setData({
-      pairdevice: {
-        title: '',
-        hidden: true,
-        text: ADD_DEVICE_MSG,
-        time: ADD_DEVICE_TIMEOUT
-      },
-      myDevice: null //重置临时设备
-    })
-    bleproxy.stopLeScan()
-  },
-
-
-  //分享借车
-  shareDevice: function () {
-    console.info('分享借车')
-
-    var lendCode = '' //借车码
-    var deviceCount = 0 //设备数量
-    var isShare = false //是否是通过扫码添加的设备
-    this.data.devices.forEach(element => {
-      if (element.mac != '') {
-        deviceCount++
-
-        if (element.mac == this.data.mac) {
-          lendCode = element.lend_code
-          //设备绑定的用户id跟当前登录的用户id不一样，是分享来的设备
-          //isShare = element.openid != app.globalData.openid
-          isShare = element.openids.indexOf(app.globalData.openid, 0) == -1
-        }
-      }
-    });
-
-    if (deviceCount == 0) {
-      viewutil.toast('您尚未添加车辆')
-      return
-    }
-
-    if (isShare) {
-      viewutil.toast('该设备是您通过扫码添加的，无法再次分享')
-      return
-    }
-
-    if (lendCode == '') {
-      viewutil.toast('请选择您要分享的车辆')
-      return
-    }
-
-    if (!app.isUserAvailable()) {
-      viewutil.toast('免费体验用户无法分享车辆')
-      return
-    }
-
-    //生成二维码的库：https://github.com/yingye/weapp-qrcode
-    drawQrcode({
-      width: 200,
-      height: 200,
-      canvasId: 'myQrcode',
-      // ctx: wx.createCanvasContext('myQrcode'),
-      text: wx.arrayBufferToBase64(util.stringToArrayBuffer(lendCode)),
-      // v1.0.0+版本支持在二维码上绘制图片
-      // image: {
-      //   imageResource: '../../images/icon.png',
-      //   dx: 70,
-      //   dy: 70,
-      //   dWidth: 60,
-      //   dHeight: 60
-      // }
-    })
-    this.setData({
-      sharedevice: {
-        title: '借车码',
-        hidden: false,
-        text: '' //测试显示借车码明文 lendCode
-      }
-    })
-  },
-
-
-  sharedeviceCancel: function () {
-    this.setData({
-      sharedevice: {
-        title: '',
-        hidden: true,
-        text: ''
-      }
-    })
-  },
-
-
-  //跳转到设备扫描页面
-  scanDevice: function () {
-    wx.navigateTo({
-      url: '../scanle/scanle',
-    })
-  },
-
-  deviceChange: function (e) {
-    console.info('deviceChange', e)
-    this.setData({
-      mac: e.detail.value
-    })
-  },
-
-  //旧API获取用户信息
-  onGetUserInfo: function (e) {
-    console.log('onGetUserInfo() - 用户信息', e.detail.userInfo)
-    this.setUserInfo(e.detail.userInfo)
-  },
-
-  setUserInfo: function (userInfo) {
-    if (!this.data.logged) {
-      this.setData({
-        logged: true,
-        avatarUrl: userInfo.avatarUrl,
-        nickname: userInfo.nickName,
-        userInfo: userInfo
-      })
-    }
-  },
-
-
-  //新API获取用户信息
-  getUserProfile(e) {
-    // 推荐使用wx.getUserProfile获取用户信息，开发者每次通过该接口获取用户个人信息均需用户确认
-    // 开发者妥善保管用户快速填写的头像昵称，避免重复弹窗
-    wx.getUserProfile({
-      desc: '用于绑定设备', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
-      success: (res) => {
-        console.log('getUserProfile() - 用户信息', res.userInfo)
-        dbutil.addWXUserInfo(res.userInfo) //存储用户信息到云数据库
-        this.setUserInfo(res.userInfo)
-      },
-      fail: (err) => {
-        console.error('getUserProfile', err)
-      }
-    })
-  },
-
-
-  onLoad: function (options) {
+//----------------------------------------------------------------
+/// 生命周期
+onLoad: function (options) {
     var that = this;
     console.info('手机号 ' + sputil.getPhoneNumber());
     that.setData({
@@ -562,7 +239,513 @@ Page({
     onfire.on('userConsole_update_devices', function (device) {
       that.getDevicesFromCloud();
     });
+},
+
+onShow: function () {
+  //状态栏颜色
+  wx.setNavigationBarColor({
+    frontColor: '#000000',
+    backgroundColor: '#ffffff',
+    animation: {
+      duration: 400,
+      timingFunc: 'easeIn'
+    }
+  });
+  if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+    this.getTabBar().setData({
+      selected: 1,
+      bg_path: '/images/tab_settings_selected.png'
+    });
+  }
+  //云数据库获取用户的设备
+  console.info('userConsole.js onShow()');
+  this.getDevicesFromCloud();
+},
+
+onUnload: function () {
+    var that = this;
+    // 断开连接
+    wx.closeBLEConnection({
+      deviceId: that.data.deviceId,
+      success: function (res) {
+        console.error('断开连接', res);
+      },
+    });
+
+    onfire.un('onBLEConnectionStateChange_userConsole')
+    onfire.un('onBLECharacteristicValueChange_userConsole')
+    onfire.un('onBluetoothDeviceFound_userConsole')
+    onfire.un('userConsole_update_devices')
+},
+//----------------------------------------------------------------
+
+// 配对设备
+//----------------------------------------------------------------
+  showPairDeviceDialog: function () {
+    var self = this
+
+    const countDown = self.selectComponent('.control-count-down');
+    countDown.reset()
+    countDown.start()
+
+    self.setData({
+      pairdevice: {
+        title: '',
+        hidden: false,
+        text: ADD_DEVICE_MSG,
+        time: ADD_DEVICE_TIMEOUT
+      }
+    })
+
+    //开始扫描设备
+    bleproxy.startLeScan(true, ADD_DEVICE_TIMEOUT)
+
+    let connectTimerId = setTimeout(function () {
+      viewutil.toast('匹配未成功，请重新匹配操作')
+      if (self.data.myDevice != null) {
+        bleproxy.disconnect(self.data.myDevice.deviceId)
+      }
+      self.hidePairDeviceDialog() //超时取消配对
+
+    }, ADD_DEVICE_TIMEOUT)
+
+    self.setData({
+      connectTimerId: connectTimerId
+    })
   },
+
+  doDelete: function (item) {
+    let mac = item.mac
+    let devices = this.data.devices
+
+    devices.forEach(element => {
+      if (element.mac == mac) {
+        element._id = ''
+        element.openid = ''
+        element.name = '+'
+        element.deviceId = ''
+        element.version = ''
+        element.mac = ''
+        element.type = ''
+        element.lend_code = ''
+        element.connected = false
+      }
+    });
+
+    sputil.putDevices(devices)
+    this.setData({
+      devices: devices
+    })
+
+    if (sputil.getDeviceMac() == mac) {
+      sputil.putDeviceMac('')
+      sputil.putDeviceId('')
+      bleproxy.setCurrentDeviceId('');
+      bleproxy.disconnect(this.data.deviceId)
+
+      this.setData({
+        mac: '',
+        deviceId: ''
+      })
+    }
+  },
+
+  addDevice: function (e) {
+    if (this.data.logged) {
+      if (!bleproxy.isBluetoothAvailable()) {
+        bleproxy.showModal() //提示用户打开蓝牙
+        return
+      }
+
+      var that = this
+      wx.getSystemInfo({
+        success: (result) => {
+          console.info('定位开关', result.locationEnabled)
+          if (!result.locationEnabled) {
+            wx.showModal({
+              title: '提示',
+              content: '扫描蓝牙设备需要打开手机的位置服务，建议您打开位置开关后重新进入小程序',
+              confirmText: '好的',
+              showCancel: false
+            })
+          } else {
+            var item = e.currentTarget.dataset.item
+
+            if (item.mac == '') {
+              console.info('addDevice', item)
+              that.showPairDeviceDialog()
+            } else {
+              //切换设备
+              console.info('切换设备', item)
+              sputil.putDeviceMac(item.mac)
+              sputil.putDeviceId(item.deviceId)
+              bleproxy.setCurrentDeviceId(item.deviceId);
+              that.setData({
+                mac: item.mac,
+                deviceId: item.deviceId,
+                ganyingAvailable: that.isGanyingAvailable(item)
+              });
+              //设置感应开关状态，分享来的设备不勾选
+              if (that.data.isGanyingAvailable && !that.isSharedDevice()) {
+                that.setData({
+                  ganyingChecked: false
+                });
+              }
+
+              //切换设备时查询一次设备
+              if (app.globalData.isNetworkOn) {
+                bleproxy.send(item.deviceId, bledata.queryState());
+              }
+            }
+          }
+        },
+      })
+
+    } else {
+      viewutil.toast('请先登录')
+    }
+  },
+
+  //删除设备
+  removeDevice: function (e) {
+    console.log('清除匹配', e);
+
+    var that = this
+    if (that.data.logged) {
+      var item = e.currentTarget.dataset.item
+      console.info('removeDevice', item)
+      if (item.mac != '') {
+        wx.showModal({
+          content: '确定删除该设备？',
+          showCancel: true,
+          success: (res) => {
+            if (res.confirm) {
+              //用户确定删除设备
+              console.log('用户确定删除设备', item);
+              dbutil.delDevice(item, function (res2) {
+                console.log('云端删除设备', res2);
+                if (res2.result.stats.removed > 0 || res2.result.stats.updated > 0) {
+                  that.doDelete(item);
+                  if (that.isGanyingAvailable(item)) {
+                    that.tipAfterDelete(item.type);
+                  }
+                }
+              });
+            }
+          }
+        })
+      }
+    } else {
+      viewutil.toast('请先登录');
+    }
+  },
+  
+  doSuccess: function (myDevice) {
+    var that = this;
+    viewutil.toast('匹配成功');
+    console.info('配对成功!', myDevice);
+    var mac = '';
+
+    that.data.devices.forEach(element => {
+      if (element.deviceId == '') {
+        if (mac == '') {
+          mac = myDevice.mac
+          element.name = myDevice.name
+          element.deviceId = myDevice.deviceId
+          element.mac = myDevice.mac
+          element.version = myDevice.version
+          element.connected = true
+          element.openid = myDevice.openid
+          element.openids = myDevice.openids
+          element.type = myDevice.type
+          element.lend_code = myDevice.lend_code
+        }
+      }
+    });
+
+    let devices = that.data.devices;
+
+    that.setData({
+      mac: mac,
+      connected: true,
+      bleState: '已连接',
+      devices: devices,
+      deviceId: myDevice.deviceId,
+      ganyingAvailable: that.isGanyingAvailable(myDevice)
+    });
+
+    sputil.putDeviceMac(myDevice.mac);
+    sputil.putDeviceId(myDevice.deviceId);
+    bleproxy.setCurrentDeviceId(myDevice.deviceId);
+    sputil.putDevices(devices);
+
+    //绑定成功后
+    if (app.isUserAvailable()) {
+      //发起HID配对
+      if (that.isGanyingAvailable(myDevice)) {
+        that.requestHID(myDevice);
+      }
+    } else {
+      //未激活的用户，配对成功后显示“激活”按钮
+      const myuser = app.globalData.myuser;
+      if (myuser.use_times > 20) {
+        that.setData({
+          showJiHuoButton: false //true
+        });
+      }
+    }
+  },
+
+  isDeviceAdded: function (mac) {
+    let devices = this.data.devices
+    var contains = false
+    for (var i = 0; i < devices.length; i++) {
+      if (devices[i].mac == mac) {
+        contains = true
+      }
+    }
+    return contains
+  },
+  ///用户取消配对
+  pairdeviceCancel: function () {
+    var that = this
+    console.info('取消配对')
+    clearTimeout(that.data.connectTimerId)
+    if (that.data.myDevice != null) {
+      bleproxy.disconnect(that.data.myDevice.deviceId)
+    }
+    that.hidePairDeviceDialog()
+  },
+
+  ///跟设备端配对成功
+  pairdeviceSuccess: function () {
+    var that = this
+
+    let myDevice = that.data.myDevice
+    if (myDevice == null) return
+
+    console.info('pairdeviceSuccess')
+
+    dbutil.bindDevice(myDevice, function (res) {
+      //console.info('pairdeviceSuccess', res)
+      if (res.result.code == 0) {
+        that.doSuccess(res.result.device);
+      } else {
+        viewutil.toast(res.result.msg)
+        // code 见云函数 myclouddb 中 bindeDevice 方法
+        if (res.result.code == 2) {
+          //设备已被其他用户绑定
+          bleproxy.disconnect(myDevice.deviceId)
+        }
+      }
+    })
+
+    clearTimeout(that.data.connectTimerId)
+    that.hidePairDeviceDialog()
+  },
+//----------------------------------------------------------------
+
+
+  jiHuo() {
+    this.setData({
+      showActionsheet: true
+    });
+  },
+
+  btnClick(e) {
+    console.log('点击的激活方式', e);
+    this.setData({
+      showActionsheet: false
+    });
+    if (e.detail.value == 1) {
+      console.log('微信支付');
+      this.pay();
+    } else if (e.detail.value == 2) {
+      console.log('激活码');
+      wx.navigateTo({
+        url: '../activation/activation',
+      })
+    }
+  },
+
+ 
+
+
+
+ 
+
+ 
+
+
+  //隐藏配对对话框
+  hidePairDeviceDialog: function () {
+    this.setData({
+      pairdevice: {
+        title: '',
+        hidden: true,
+        text: ADD_DEVICE_MSG,
+        time: ADD_DEVICE_TIMEOUT
+      },
+      myDevice: null //重置临时设备
+    })
+    bleproxy.stopLeScan()
+  },
+
+
+  //分享借车
+  shareDevice: function () {
+    console.info('分享借车')
+
+    var lendCode = '' //借车码
+    var deviceCount = 0 //设备数量
+    var isShare = false //是否是通过扫码添加的设备
+    this.data.devices.forEach(element => {
+      if (element.mac != '') {
+        deviceCount++
+
+        if (element.mac == this.data.mac) {
+          lendCode = element.lend_code
+          //设备绑定的用户id跟当前登录的用户id不一样，是分享来的设备
+          //isShare = element.openid != app.globalData.openid
+          isShare = element.openids.indexOf(app.globalData.openid, 0) == -1
+        }
+      }
+    });
+
+    if (deviceCount == 0) {
+      viewutil.toast('您尚未添加车辆')
+      return
+    }
+
+    if (isShare) {
+      viewutil.toast('该设备是您通过扫码添加的，无法再次分享')
+      return
+    }
+
+    if (lendCode == '') {
+      viewutil.toast('请选择您要分享的车辆')
+      return
+    }
+
+    if (!app.isUserAvailable()) {
+      viewutil.toast('免费体验用户无法分享车辆')
+      return
+    }
+
+    //生成二维码的库：https://github.com/yingye/weapp-qrcode
+    drawQrcode({
+      width: 200,
+      height: 200,
+      canvasId: 'myQrcode',
+      // ctx: wx.createCanvasContext('myQrcode'),
+      text: wx.arrayBufferToBase64(util.stringToArrayBuffer(lendCode)),
+      // v1.0.0+版本支持在二维码上绘制图片
+      // image: {
+      //   imageResource: '../../images/icon.png',
+      //   dx: 70,
+      //   dy: 70,
+      //   dWidth: 60,
+      //   dHeight: 60
+      // }
+    })
+    this.setData({
+      sharedevice: {
+        title: '借车码',
+        hidden: false,
+        text: '' //测试显示借车码明文 lendCode
+      }
+    })
+  },
+
+
+  sharedeviceCancel: function () {
+    this.setData({
+      sharedevice: {
+        title: '',
+        hidden: true,
+        text: ''
+      }
+    })
+  },
+
+
+  //跳转到设备扫描页面
+  scanDevice: function () {
+    wx.navigateTo({
+      url: '../scanle/scanle',
+    })
+  },
+
+  deviceChange: function (e) {
+    console.info('deviceChange', e)
+    this.setData({
+      mac: e.detail.value
+    })
+  },
+
+  //旧API获取用户信息
+  onGetUserInfo: function (e) {
+    console.log('onGetUserInfo() - 用户信息', e.detail.userInfo)
+    this.setUserInfo(e.detail.userInfo)
+  },
+
+  setUserInfo: function (userInfo) {
+    if (!this.data.logged) {
+      this.setData({
+        logged: true,
+        avatarUrl: userInfo.avatarUrl,
+        nickname: userInfo.nickName,
+        userInfo: userInfo
+      })
+    }
+  },
+//新API获取用户信息
+getUserProfile(e) {
+  // 推荐使用wx.getUserProfile获取用户信息，开发者每次通过该接口获取用户个人信息均需用户确认
+  // 开发者妥善保管用户快速填写的头像昵称，避免重复弹窗
+  wx.getUserProfile({
+    desc: '用于绑定设备', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
+    success: (res) => {
+      console.log('getUserProfile() - 用户信息', res.userInfo)
+      dbutil.addWXUserInfo(res.userInfo) //存储用户信息到云数据库
+      this.setUserInfo(res.userInfo)
+    },
+    fail: (err) => {
+      console.error('getUserProfile', err)
+    }
+  })
+},
+  getPhoneNumber(e) {
+    console.log('getPhoneNumber', e)
+    var that = this;
+    var cloudIDType = typeof (e.detail.cloudID);
+    if (cloudIDType != 'string') {
+      console.error('getPhoneNumber() - cloudIDType=' + cloudIDType)
+      return;
+    }
+    dbutil.cloud.callFunction({
+      name: 'openapi',
+      data: {
+        action: 'getOpenData',
+        openData: {
+          list: [
+            e.detail.cloudID,
+          ]
+        }
+      }
+    }).then(res => {
+      console.log('[getPhoneNumber] 调用成功：', res);
+      let phoneNumber = res.result.list[0].data.phoneNumber;
+      console.info("获得手机号", phoneNumber);
+      sputil.putPhoneNumber(phoneNumber);
+      that.setData({
+        showGetPhoneNumberButton: false
+      });
+      that.jiHuo();
+    }).catch(console.error);
+  },
+  
+
 
   isByte7Valid: function (byte7) {
     switch (byte7) {
@@ -779,16 +962,6 @@ Page({
     })
   },
 
-  isDeviceAdded: function (mac) {
-    let devices = this.data.devices
-    var contains = false
-    for (var i = 0; i < devices.length; i++) {
-      if (devices[i].mac == mac) {
-        contains = true
-      }
-    }
-    return contains
-  },
 
   sendPayload: function (cmdCode, showToast = false, optCode = 0, ganying) {
     if (!app.globalData.isNetworkOn) {
@@ -817,26 +990,7 @@ Page({
   },
 
 
-  onShow: function () {
-    //状态栏颜色
-    wx.setNavigationBarColor({
-      frontColor: '#000000',
-      backgroundColor: '#ffffff',
-      animation: {
-        duration: 400,
-        timingFunc: 'easeIn'
-      }
-    });
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({
-        selected: 1,
-        bg_path: '/images/tab_settings_selected.png'
-      });
-    }
-    //云数据库获取用户的设备
-    console.info('userConsole.js onShow()');
-    this.getDevicesFromCloud();
-  },
+  
 
   //判断是否要显示“激活”按钮
   isShowJiHuoButton: function () {
@@ -848,21 +1002,7 @@ Page({
   },
 
 
-  onUnload: function () {
-    var that = this;
-    // 断开连接
-    wx.closeBLEConnection({
-      deviceId: that.data.deviceId,
-      success: function (res) {
-        console.error('断开连接', res);
-      },
-    });
 
-    onfire.un('onBLEConnectionStateChange_userConsole')
-    onfire.un('onBLECharacteristicValueChange_userConsole')
-    onfire.un('onBluetoothDeviceFound_userConsole')
-    onfire.un('userConsole_update_devices')
-  },
 
 
   onSensitivityChange: function (e) {
@@ -1009,39 +1149,6 @@ Page({
     sputil.setEncrypt(checked)
   },
 
-  //删除设备
-  removeDevice: function (e) {
-    console.log('清除匹配', e);
-
-    var that = this
-    if (that.data.logged) {
-      var item = e.currentTarget.dataset.item
-      console.info('removeDevice', item)
-      if (item.mac != '') {
-        wx.showModal({
-          content: '确定删除该设备？',
-          showCancel: true,
-          success: (res) => {
-            if (res.confirm) {
-              //用户确定删除设备
-              console.log('用户确定删除设备', item);
-              dbutil.delDevice(item, function (res2) {
-                console.log('云端删除设备', res2);
-                if (res2.result.stats.removed > 0 || res2.result.stats.updated > 0) {
-                  that.doDelete(item);
-                  if (that.isGanyingAvailable(item)) {
-                    that.tipAfterDelete(item.type);
-                  }
-                }
-              });
-            }
-          }
-        })
-      }
-    } else {
-      viewutil.toast('请先登录');
-    }
-  },
 
   tipAfterDelete: function (deviceType) {
     var productNo = 'XX';
@@ -1063,97 +1170,7 @@ Page({
     });
   },
 
-  doDelete: function (item) {
-    let mac = item.mac
-    let devices = this.data.devices
-
-    devices.forEach(element => {
-      if (element.mac == mac) {
-        element._id = ''
-        element.openid = ''
-        element.name = '+'
-        element.deviceId = ''
-        element.version = ''
-        element.mac = ''
-        element.type = ''
-        element.lend_code = ''
-        element.connected = false
-      }
-    });
-
-    sputil.putDevices(devices)
-    this.setData({
-      devices: devices
-    })
-
-    if (sputil.getDeviceMac() == mac) {
-      sputil.putDeviceMac('')
-      sputil.putDeviceId('')
-      bleproxy.setCurrentDeviceId('');
-      bleproxy.disconnect(this.data.deviceId)
-
-      this.setData({
-        mac: '',
-        deviceId: ''
-      })
-    }
-  },
-
-  addDevice: function (e) {
-    if (this.data.logged) {
-      if (!bleproxy.isBluetoothAvailable()) {
-        bleproxy.showModal() //提示用户打开蓝牙
-        return
-      }
-
-      var that = this
-      wx.getSystemInfo({
-        success: (result) => {
-          console.info('定位开关', result.locationEnabled)
-          if (!result.locationEnabled) {
-            wx.showModal({
-              title: '提示',
-              content: '扫描蓝牙设备需要打开手机的位置服务，建议您打开位置开关后重新进入小程序',
-              confirmText: '好的',
-              showCancel: false
-            })
-          } else {
-            var item = e.currentTarget.dataset.item
-
-            if (item.mac == '') {
-              console.info('addDevice', item)
-              that.showPairDeviceDialog()
-            } else {
-              //切换设备
-              console.info('切换设备', item)
-              sputil.putDeviceMac(item.mac)
-              sputil.putDeviceId(item.deviceId)
-              bleproxy.setCurrentDeviceId(item.deviceId);
-              that.setData({
-                mac: item.mac,
-                deviceId: item.deviceId,
-                ganyingAvailable: that.isGanyingAvailable(item)
-              });
-              //设置感应开关状态，分享来的设备不勾选
-              if (that.data.isGanyingAvailable && !that.isSharedDevice()) {
-                that.setData({
-                  ganyingChecked: false
-                });
-              }
-
-              //切换设备时查询一次设备
-              if (app.globalData.isNetworkOn) {
-                bleproxy.send(item.deviceId, bledata.queryState());
-              }
-            }
-          }
-        },
-      })
-
-    } else {
-      viewutil.toast('请先登录')
-    }
-  },
+ 
 
   //根据设备类型判断是否支持“后台感应功能”
   isGanyingAvailable(device) {
@@ -1212,29 +1229,7 @@ Page({
     })
   },
 
-  pay: function () {
-    var that = this;
-    //调用微信支付云接口
-    dbutil.pay((res) => {
-      const payment = res.result.payment;
-      //payment.appId = 'wxf707393f43bdaa51';
-      console.log('##### payment =', payment);
-      wx.requestPayment({
-        ...payment,
-        success(res) {
-          console.log('支付成功', res);
-          app.globalData.myuser.is_vip = true;
-          sputil.setPaySuccess(true);
-          that.setData({
-            showJiHuoButton: false
-          });
-        },
-        fail(res) {
-          console.log('支付失败', res);
-        }
-      });
-    });
-  },
+ 
 
   //部分功能需要限制免费用户的使用次数，该方法检测用户是否可以使用
   isCanUse: function () {
@@ -1274,8 +1269,34 @@ Page({
     return isShare;
   },
 
+ /// 微信支付
+  pay: function () {
+    var that = this;
+    //调用微信支付云接口
+    dbutil.pay((res) => {
+      const payment = res.result.payment;
+      //payment.appId = 'wxf707393f43bdaa51';
+      console.log('##### payment =', payment);
+      wx.requestPayment({
+        ...payment,
+        success(res) {
+          console.log('支付成功', res);
+          app.globalData.myuser.is_vip = true;
+          sputil.setPaySuccess(true);
+          that.setData({
+            showJiHuoButton: false
+          });
+        },
+        fail(res) {
+          console.log('支付失败', res);
+        }
+      });
+    });
+  },
   test: function () {
     console.log('测试XXX');
   },
-
+  testPay(e) {
+    this.pay();
+  },
 })
