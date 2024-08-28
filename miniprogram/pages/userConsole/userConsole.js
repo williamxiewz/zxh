@@ -281,6 +281,7 @@ onUnload: function () {
 
 // 配对设备
 //----------------------------------------------------------------
+
   showPairDeviceDialog: function () {
     var self = this
 
@@ -312,6 +313,19 @@ onUnload: function () {
     self.setData({
       connectTimerId: connectTimerId
     })
+  }, 
+  //隐藏配对对话框
+  hidePairDeviceDialog: function () {
+    this.setData({
+      pairdevice: {
+        title: '',
+        hidden: true,
+        text: ADD_DEVICE_MSG,
+        time: ADD_DEVICE_TIMEOUT
+      },
+      myDevice: null //重置临时设备
+    })
+    bleproxy.stopLeScan()
   },
 
   doDelete: function (item) {
@@ -439,7 +453,7 @@ onUnload: function () {
       viewutil.toast('请先登录');
     }
   },
-  
+
   doSuccess: function (myDevice) {
     var that = this;
     viewutil.toast('匹配成功');
@@ -577,19 +591,7 @@ onUnload: function () {
  
 
 
-  //隐藏配对对话框
-  hidePairDeviceDialog: function () {
-    this.setData({
-      pairdevice: {
-        title: '',
-        hidden: true,
-        text: ADD_DEVICE_MSG,
-        time: ADD_DEVICE_TIMEOUT
-      },
-      myDevice: null //重置临时设备
-    })
-    bleproxy.stopLeScan()
-  },
+
 
 
   //分享借车
