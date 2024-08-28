@@ -35,7 +35,7 @@ Page({
     bluetoothAvailable: false,
     connected: false, //是否已连接设备
     isStart: false, //是否是启动状态
-    platform: '', //android ios
+    platform: '', //android ios 
     selectedBtn: -1,
     imageOfMoto: '../../images/img_moto_normal.png',
     imageOfStartBtn: '../../images/btn_start.png',
@@ -51,7 +51,6 @@ Page({
     ganyingValue: 3,
     is_kzb: false //是否是开坐包设备
   },
-
 
   //扫码添加设备
   scanCode: function () {

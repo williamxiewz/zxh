@@ -372,11 +372,12 @@ App({
   isUserAvailable() {
     const device = sputil.getSelectedDevice();
     if (device == null) return true;
-
+    
     if (this.isFreeDevice(device)) {
       return true; //免费类型设备
     }
 
+    //缓存查看 是否已经付费 
     let b = sputil.isPaySuccess();
     if (b) {
       return true;
@@ -386,11 +387,15 @@ App({
       var isVip = this.globalData.myuser.hasOwnProperty('is_vip') && this.globalData.myuser.is_vip;
       return isVip || this.globalData.isActivated;
     }
+    
     return false;
   },
 
   //是否免费型号设备
   isFreeDevice(device) {
+    //v2(index.js 都可以点击 , 后台需要付费) 
+    //v4(20 次点击,后台需要付费)  
+    //v8/v9(免费全功能)
     console.info('isFreeDevice() - device =', device);
     if (device.type == '') return true;
     let num = util.deviceTypeNum(device.type);
