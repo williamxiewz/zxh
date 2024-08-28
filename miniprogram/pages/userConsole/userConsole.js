@@ -1176,7 +1176,7 @@ onUnload: function () {
       tempLogo: e.detail.value
     })
   },
-
+  ///
   setLogoCancel: function () {
     console.log('品牌Logo设置 -> 取消')
     this.setData({
@@ -1187,7 +1187,7 @@ onUnload: function () {
       tempLogo: ''
     })
   },
-
+  ///
   setLogoConfirm: function () {
     let logo = this.data.tempLogo;
     console.log('品牌Logo设置 -> 确定', logo)
@@ -1202,7 +1202,7 @@ onUnload: function () {
       tempLogo: ''
     })
   },
-
+  ///设置 logo
   setLogo: function () {
     console.info('品牌Logo设置')
 
@@ -1218,6 +1218,10 @@ onUnload: function () {
       tempLogo: ''
     })
   },
+///----------------------------------------------------------------
+
+
+///----------------------------------------------------------------
   ///部分功能需要限制免费用户的使用次数，该方法检测用户是否可以使用
   isCanUse: function () {
     var that = this
@@ -1243,7 +1247,7 @@ onUnload: function () {
     }
     return true
   },
-  //判断当前选中的设备是否是分享来的设备【控制页扫码添加的设备】
+  ///判断当前选中的设备是否是分享来的设备【控制页扫码添加的设备】
   isSharedDevice: function () {
     var isShare = false; //是否是通过扫码添加的设备
     let devices = sputil.getDevices();
@@ -1255,8 +1259,6 @@ onUnload: function () {
     return isShare;
   },
 ///----------------------------------------------------------------
-
-
 
   pay: function () {
     var that = this;
