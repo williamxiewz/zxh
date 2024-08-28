@@ -662,9 +662,45 @@ onUnload: function () {
       showCancel: false
     });
   },
+  ///判断当前选中的设备是否是分享来的设备【控制页扫码添加的设备】
+  isSharedDevice: function () {
+      var isShare = false; //是否是通过扫码添加的设备
+      let devices = sputil.getDevices();
+      devices.forEach(element => {
+        if (sputil.getDeviceMac() == element.mac) {
+          isShare = element.openids.indexOf(app.globalData.openid, 0) == -1;
+        }
+      });
+      return isShare;
+  },
+  ///部分功能需要限制免费用户的使用次数，该方法检测用户是否可以使用
+  isCanUse: function () {
+      var that = this
+      const myuser = app.globalData.myuser
+      console.log('userConsole.js isCanUse()', myuser)
+  
+      var isShare = that.isSharedDevice(); //是否是通过扫码添加的设备
+  
+      if (!isShare) {
+        //非分享设备，非VIP用户只可使用20次
+        if (!app.isUserAvailable() && myuser.use_times > 20) {
+          console.error('userConsole.js 可免费使用20次，目前已使用次数：' + myuser.use_times)
+          wx.showModal({
+            content: '免费体验已达到上限！如需继续使用手机控车功能，需付费18元，永久使用。',
+            success: (res) => {
+              if (res.confirm) {
+                that.pay()
+              }
+            }
+          });
+          return false
+        }
+      }
+      return true
+  },
 ///----------------------------------------------------------------
 
-
+/// 功能相关
 ///----------------------------------------------------------------
   
   onSensitivityChange: function (e) {
@@ -769,7 +805,7 @@ onUnload: function () {
  
 
  
-
+/// 用户信息相关
 ///----------------------------------------------------------------
 
   ///旧API获取用户信息
@@ -925,7 +961,7 @@ onUnload: function () {
 
 
 
-
+/// 数据处理相关
 ///----------------------------------------------------------------
   ///处理接收到的数据
   handleRxData: function (buffer, deviceId) {
@@ -1105,7 +1141,7 @@ onUnload: function () {
 
 
 
-
+/// 激活相关
 ///----------------------------------------------------------------
   ///判断是否要显示“激活”按钮
   isShowJiHuoButton: function () {
@@ -1139,6 +1175,7 @@ onUnload: function () {
   },
 ///----------------------------------------------------------------
 
+/// 
 ///----------------------------------------------------------------
   ///
   isByte7Valid: function (byte7) {
@@ -1221,44 +1258,9 @@ onUnload: function () {
 ///----------------------------------------------------------------
 
 
-///----------------------------------------------------------------
-  ///部分功能需要限制免费用户的使用次数，该方法检测用户是否可以使用
-  isCanUse: function () {
-    var that = this
-    const myuser = app.globalData.myuser
-    console.log('userConsole.js isCanUse()', myuser)
 
-    var isShare = that.isSharedDevice(); //是否是通过扫码添加的设备
 
-    if (!isShare) {
-      //非分享设备，非VIP用户只可使用20次
-      if (!app.isUserAvailable() && myuser.use_times > 20) {
-        console.error('userConsole.js 可免费使用20次，目前已使用次数：' + myuser.use_times)
-        wx.showModal({
-          content: '免费体验已达到上限！如需继续使用手机控车功能，需付费18元，永久使用。',
-          success: (res) => {
-            if (res.confirm) {
-              that.pay()
-            }
-          }
-        });
-        return false
-      }
-    }
-    return true
-  },
-  ///判断当前选中的设备是否是分享来的设备【控制页扫码添加的设备】
-  isSharedDevice: function () {
-    var isShare = false; //是否是通过扫码添加的设备
-    let devices = sputil.getDevices();
-    devices.forEach(element => {
-      if (sputil.getDeviceMac() == element.mac) {
-        isShare = element.openids.indexOf(app.globalData.openid, 0) == -1;
-      }
-    });
-    return isShare;
-  },
-///----------------------------------------------------------------
+
 
   pay: function () {
     var that = this;
