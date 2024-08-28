@@ -31,7 +31,8 @@ Page({
     avatarUrl: './user-unlogin.png',
     nickname: '点击登录',
     mac: -1, //选中的设备MAC
-    devices: [{
+    devices: [
+      {
         type: '',
         deviceId: '',
         mac: '',
@@ -98,7 +99,8 @@ Page({
       }
     ]
   },
-  
+
+////生命周期
 ///----------------------------------------------------------------
 onLoad: function (options) {
     var that = this;
@@ -801,7 +803,6 @@ onUnload: function () {
 
 /// 用户信息相关
 ///----------------------------------------------------------------
-
   ///旧API获取用户信息
   onGetUserInfo: function (e) {
     console.log('onGetUserInfo() - 用户信息', e.detail.userInfo)
