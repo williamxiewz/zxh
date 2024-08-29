@@ -31,8 +31,7 @@
           <view class="radio {{mac != '' && mac == item.mac? 'radio-checked':'radio-unchecked'}}" bindtap="addDevice"
             bindlongpress="removeDevice" data-item="{{item}}">
             <!-- <radio value="{{mac}}" checked="{{deviceIndex == item.index}}" /> -->
-            <view style="color:{{ item.name=='+' || item.connected? 'black':'#dddddd'}};">{{item.name}}
-              {{item.version}}</view>
+            <view style="color:{{ item.name=='+' || item.connected? 'black':'#dddddd'}};">{{item.name}}{{item.version}}</view>
           </view>
         </label>
       </radio-group>
