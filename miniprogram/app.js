@@ -374,31 +374,33 @@ App({
   isUserAvailable() {
     const device = sputil.getSelectedDevice();
     if (device == null) return true;
-    
+    //1.判断是否免费类型设备
     if (this.isFreeDevice(device)) {
-      return true; //免费类型设备
+      return true; 
     }
 
-    //付费 产品查看是否付费
-
+    //2.付费产品
+    // 
     //缓存查看 是否已经付费 
     let b = sputil.isPaySuccess();
     if (b) {
       return true;
     }
-
+    
     //已经付费或者已经绑定激活码，视为激活用户，使用不受限制
+    // 激活码付费
     if (this.globalData.myuser) {
       var isVip = this.globalData.myuser.hasOwnProperty('is_vip') && this.globalData.myuser.is_vip;
       return isVip || this.globalData.isActivated;
     }
 
+    // 不可用
     return false;
   },
 
   //是否免费型号设备
   isFreeDevice(device) {
-    //v2(index.js 都可以点击 , 后台需要付费) 
+    //v2(都可以点击, 后台需要付费) 
     //v4(20 次点击,后台需要付费)  
     //v8/v9(免费全功能)
     console.info('isFreeDevice() - device =', device);
@@ -407,6 +409,9 @@ App({
     // if(num == 4) {
     //   return false;// BA04 是付费版本，带感应功能
     // }
+
+
+
     return num >= 7;
   }
 

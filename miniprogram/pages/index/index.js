@@ -334,6 +334,7 @@ Page({
 
   // 发生指令 负载payload
   sendPayload: function (cmdCode, ganying, optCode = 4) {
+    //1.判断网络连接
     if (!app.globalData.isNetworkOn) {
       viewutil.toast('网络已断开');
       return;
@@ -342,6 +343,7 @@ Page({
     var that = this;
     const deviceType = sputil.getDeviceType();
     const deviceNum = deviceType == '' ? 0 : util.deviceTypeNum(deviceType);
+    //2.设备类型
     if (deviceNum == 1 || deviceNum == 4) {
       //产品1 产品4 限制使用次数
       const myuser = app.globalData.myuser;
@@ -376,17 +378,24 @@ Page({
     if(!deviceId) {
       deviceId = bleproxy.getCurrentDeviceId();
     }
-    //使用次数相关
-    if (bleproxy.isConnected(deviceId)) {
-      app.globalData.myuser.use_times++;
-      let useTimes = app.globalData.myuser.use_times;
-      console.log('index.js sendPayload() - use_times=' + useTimes);
 
-      dbutil.updateUserUseTimes(useTimes, function (res2) {
-        console.log('更新用户使用次数 ' + useTimes, res2);
-      });
+    // 3.记录使用次数
+    // v4 版本 记录使用次数
+    if (bleproxy.isConnected(deviceId)) {
+      if (deviceNum == 4) {
+        app.globalData.myuser.use_times++;
+        let useTimes = app.globalData.myuser.use_times;
+        console.log('index.js sendPayload() - use_times=' + useTimes);
+  
+        dbutil.updateUserUseTimes(useTimes, function (res2) {
+          console.log('更新用户使用次数 ' + useTimes, res2);
+        });
+      }
+   
     }
-    //发送指令
+
+
+    //4.发送指令
     if (deviceId != '') {
       var arr = new Uint8Array(util.hex2array(sputil.getSensitivity()));
       let sensitivity = arr[0];

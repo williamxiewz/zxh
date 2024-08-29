@@ -869,9 +869,7 @@ onUnload: function () {
   getDevicesFromCloud: function () {
       var that = this
       dbutil.getDevices(function (res) {
-  
         console.info('云端设备：', res)
-  
         var devices = [{
             type: '',
             deviceId: '',
