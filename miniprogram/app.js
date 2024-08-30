@@ -373,7 +373,8 @@ App({
   // 用户是否可用
   isUserAvailable() {
     const device = sputil.getSelectedDevice();
-    if (device == null) return true;
+    if (device == null) return false;
+
     //1.判断是否免费类型设备
     if (this.isFreeDevice(device)) {
       return true; 
