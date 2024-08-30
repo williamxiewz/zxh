@@ -365,7 +365,7 @@ onUnload: function () {
   },
   ///
   deviceChange: function (e) {
-      console.info('deviceChange', e)
+      console.info('deviceChange+------', e)
       this.setData({
         mac: e.detail.value
       })
