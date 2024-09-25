@@ -995,34 +995,38 @@ onUnload: function () {
             }, 200);
           }
 
-          switch (value[12]) {
-            case 1:
-              that.setData({
-                ganyingChecked: false
-              });
-              break;
-            case 2:
-              that.setData({
-                ganyingChecked: true,
-                ganyingValue: value[12],
-                ganyingJuli: '近'
-              });
-              break;
-            case 3:
-              that.setData({
-                ganyingChecked: true,
-                ganyingValue: value[12],
-                ganyingJuli: '中'
-              });
-              break;
-            case 4:
-              that.setData({
-                ganyingChecked: true,
-                ganyingValue: value[12],
-                ganyingJuli: '远'
-              });
-              break;
-          }
+            switch (value[12]) {
+              case 1:
+                that.setData({
+                  ganyingChecked: false
+                });
+                break;
+              case 2:
+                that.setData({
+                  ganyingChecked: true,
+                  ganyingValue: value[12],
+                  ganyingJuli: '近'
+                });
+                break;
+              case 3:
+                that.setData({
+                  ganyingChecked: true,
+                  ganyingValue: value[12],
+                  ganyingJuli: '中'
+                });
+                break;
+              case 4:
+                that.setData({
+                  ganyingChecked: true,
+                  ganyingValue: value[12],
+                  ganyingJuli: '远'
+                });
+                break;
+            }
+          
+         
+
+
         }
       }
 

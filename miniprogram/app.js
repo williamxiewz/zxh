@@ -381,7 +381,7 @@ App({
     }
 
     //2.付费产品
-    // 
+    // 需要判断是否付费
     //缓存查看 是否已经付费 
     let b = sputil.isPaySuccess();
     if (b) {
