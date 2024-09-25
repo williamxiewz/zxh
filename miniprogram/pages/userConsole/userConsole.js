@@ -25,7 +25,7 @@ const ADD_DEVICE_MSG = '请使用原车遥控器同时按住锁键和开锁键3�
 //我的设备MAC：383995486621
 Page({
   data: {
-    appVersion:'V1.0.0',
+    appVersion:'V1.0.1',
     canIUseGetUserProfile: false,
     logged: false,
     avatarUrl: './user-unlogin.png',
@@ -97,7 +97,8 @@ Page({
         text: '激活码',
         value: 2
       }
-    ]
+    ],
+    isNoUse:false,
   },
 
 ////生命周期
