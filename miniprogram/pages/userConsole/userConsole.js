@@ -407,8 +407,9 @@ onUnload: function () {
                 deviceId: item.deviceId,
                 ganyingAvailable: that.isGanyingAvailable(item)
               });
+              
               //设置感应开关状态，分享来的设备不勾选
-              if (that.data.isGanyingAvailable && !that.isSharedDevice()) {
+              if (that.data.isGanyingAvailable && !that.isSharedDevice() || !app.isUserAvailable()) {
                 that.setData({
                   ganyingChecked: false
                 });
@@ -995,7 +996,7 @@ onUnload: function () {
             }, 200);
           }
 
-            switch (value[12]) {
+          switch (value[12]) {
               case 1:
                 that.setData({
                   ganyingChecked: false
@@ -1022,12 +1023,13 @@ onUnload: function () {
                   ganyingJuli: '远'
                 });
                 break;
-            }
-          
-         
-
-
+          }
+        }  else {
+          that.setData({
+            ganyingChecked: false
+          });
         }
+
       }
 
       that.setData({
@@ -1036,6 +1038,7 @@ onUnload: function () {
         volume: value[10]
       });
       sputil.putSensitivity(util.array2hex(value.slice(8, 11)));
+
       if (value[11] == 7) {
         //小程序收到0x07状态后，回复0x07，让设备回到正常状态。收到0x07后，即可临时绑定此设备
         deviceState = '匹配模式'

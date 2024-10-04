@@ -372,7 +372,7 @@ App({
 
   // 用户是否可用
   isUserAvailable() {
-    const device = sputil.getSelectedDevice();
+    const device = sputil.getSelectedDevice()
     if (device == null) return false;
 
     //1.判断是否免费类型设备
@@ -392,7 +392,8 @@ App({
     // 激活码付费
     if (this.globalData.myuser) {
       var isVip = this.globalData.myuser.hasOwnProperty('is_vip') && this.globalData.myuser.is_vip;
-      return isVip || this.globalData.isActivated;
+      // return isVip || this.globalData.isActivated;
+      return isVip
     }
 
     // 不可用
