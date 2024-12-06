@@ -6,10 +6,7 @@ const sputil = require('../../utils/sputil.js')
 const dbutil = require('../../utils/dbutil.js')
 
 Page({
-
-  /**
-   * 页面的初始数据
-   */
+  
   data: {
     code: '',
     timer: 0

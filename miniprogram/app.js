@@ -1,5 +1,4 @@
 const bleproxy = require('./utils/bleproxy')
-//app.js
 const onfire = require('/utils/onfire.js')
 const sputil = require('/utils/sputil.js')
 const dbutil = require('/utils/dbutil.js')
