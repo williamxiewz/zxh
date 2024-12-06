@@ -9,8 +9,6 @@ Page({
     list: [],
   },
 
-
-
   onPullDownRefresh: function () {
     console.log("onPullDownRefresh")
 

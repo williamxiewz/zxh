@@ -22,6 +22,12 @@ page {
   height: 120rpx;
   position: absolute;
 }
+
+.btn_nor_hd {
+  height: 90rpx;
+  position: absolute;
+}
+
 .btn_bg {
   height: 160rpx;
   position: absolute;

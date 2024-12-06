@@ -1,6 +1,4 @@
-//index.js
 const app = getApp()
-
 const sputil = require('../../utils/sputil.js')
 const bleproxy = require('../../utils/bleproxy.js')
 const bledata = require('../../utils/bledata.js')
@@ -32,6 +30,8 @@ const MP3_ID_ARRAY = [
 
 Page({
   data: {
+    // 0 台邦， 1 火迪
+    theme:1,
     logo: '', //标题
     deviceState: -1, //设备状态
     bluetoothAvailable: false,
