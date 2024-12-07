@@ -1,6 +1,4 @@
-// pages/userConsole/userConsole.js
 const app = getApp()
-
 const sputil = require('../../utils/sputil.js')
 const bleproxy = require('../../utils/bleproxy.js')
 const bledata = require('../../utils/bledata.js')
@@ -28,6 +26,7 @@ const ADD_DEVICE_MSG = '请使用原车遥控器同时按住锁键和开锁键3�
 Page({
 
   data: {
+    appVersion:'V1.0.1',
     canIUseGetUserProfile: false,
     logged: false,
     avatarUrl: './user-unlogin.png',

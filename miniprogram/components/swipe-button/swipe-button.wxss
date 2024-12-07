@@ -3,10 +3,25 @@
 .swipe_bg_off {
   height: 120rpx;
   border-radius: 65rpx;
-  background-color: rgb(227, 229, 232);
+  background-color: #E3E5E8;
 }
+.swipe_bg_off .contentV {
+  display: flex;
+  justify-content: center; 
+  align-items: center; 
+  /* background-color: violet; */
+}
+
 .swipe_bg_on {
   height: 120rpx;
   border-radius: 65rpx;
-  background-color: rgb(61, 253, 242);
+  background-color: #1f9c94;
+} 
+.swipe_bg_on .contentV {
+   display: flex;
+   justify-content: center; 
+   align-items: center; 
+   margin-top: 35rpx;
+   color: white;
+   /* background-color: violet; */
 }

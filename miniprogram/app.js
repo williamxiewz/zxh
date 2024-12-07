@@ -106,8 +106,10 @@ App({
         console.info(`### BLE Manufacturer Data: ${mfrHead} ${mac} ${deviceType} ${version}`);
 
         let b1 = (mfrHead == 'TB1' || mfrHead == 'TB2' || mac == '2B021DD25B4C') && TYPE_PATTERN.test(deviceType);
-        let b2 = mfrHead == 'ZXH' && TYPE_PATTERN_8.test(deviceType);
-        if (b1 || b2) {
+        let b2 = (mfrHead == 'HD1' || mfrHead == 'HD2' || mac == '2B021DD25B4C') && TYPE_PATTERN.test(deviceType);
+        let b3 = mfrHead == 'ZXH' && TYPE_PATTERN_8.test(deviceType);
+        
+        if (b1 || b2 || b3) {
           let num = parseInt(deviceType.substring(3, 5), 16);
           if (num == 5 || num == 6 || num == 0xA5 || num == 0xA6) continue;
           //成对存储 deviceId 与 MAC
