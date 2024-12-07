@@ -30,7 +30,7 @@
       <radio-group style="padding-bottom: 20rpx;" bindchange="deviceChange">
         <label wx:for="{{devices}}" wx:key="{{item.index}}">
           <view class="radio {{mac != '' && mac == item.mac? 'radio-checked':'radio-unchecked'}}" bindtap="addDevice"
-            bindlongpress="removeDevice" data-item="{{item}}">
+          bindlongpress="removeDevice" data-item="{{item}}">
             <!-- <radio value="{{mac}}" checked="{{deviceIndex == item.index}}" /> -->
             <view style="color:{{ item.name=='+' || item.connected? 'black':'#dddddd'}};">{{item.name}}
               {{item.version}}</view>

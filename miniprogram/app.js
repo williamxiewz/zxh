@@ -21,17 +21,22 @@ const TYPE_PATTERN = /^[_+]BA[A-F\d][\d]$/;
 const TYPE_PATTERN_8 = /^[_+]BA[A-F\d]8$/;
 
 App({
+  globalData: {
+    openid: '',
+    myuser: {},
+    isNetworkOn: true,
+    appHidden: true,
+    isActivated: false, //账号是否已通过激活码激活
+    theme:0,
+  },
+
+///------------------------------------------------------------------
   onLaunch: function () {
     console.log('dbutil.xxx =', util.mac2DeviceId('2B021DD25B4C'));
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力')
     } else {
       wx.cloud.init({
-        // env 参数说明：
-        //   env 参数决定接下来小程序发起的云开发调用（wx.cloud.xxx）会默认请求到哪个云环境的资源
-        //   此处请填入环境 ID, 环境 ID 可打开云控制台查看
-        //   如不填则使用默认环境（第一个创建的环境）
-        //env: 'cloud1-9gulotdwa1a40a52',
         env: 'zxh-9g5pei38c7cdc56d',
         traceUser: true,
       });
@@ -89,7 +94,7 @@ App({
         if (mfrLength != 17 && mfrLength != 19) {
           continue
         }
-        //console.log('advertisData.byteLength=' + device.advertisData.byteLength, device.advertisData)
+        console.log('advertisData.byteLength=' + device.advertisData.byteLength, device.advertisData)
         let mfrBuffer = new Uint8Array(device.advertisData);
         let start = 0;
         if (mfrLength == 19 && mfrBuffer[0] == 0xff && mfrBuffer[1] == 0xff) {
@@ -103,12 +108,13 @@ App({
         start += 5;
         let version = util.arrayBufferToString(device.advertisData.slice(start, start + 3));
 
+        //### BLE Manufacturer Data:                ZS1    2B001DDD900F +BA04        V00
         console.info(`### BLE Manufacturer Data: ${mfrHead} ${mac} ${deviceType} ${version}`);
-
+        
+        // let b1 = (mfrHead == 'ZS1' || mfrHead == 'ZS2' || mac == '2B021DD25B4C') && TYPE_PATTERN.test(deviceType);
         let b1 = (mfrHead == 'TB1' || mfrHead == 'TB2' || mac == '2B021DD25B4C') && TYPE_PATTERN.test(deviceType);
         let b2 = (mfrHead == 'HD1' || mfrHead == 'HD2' || mac == '2B021DD25B4C') && TYPE_PATTERN.test(deviceType);
         let b3 = mfrHead == 'ZXH' && TYPE_PATTERN_8.test(deviceType);
-        
         if (b1 || b2 || b3) {
           let num = parseInt(deviceType.substring(3, 5), 16);
           if (num == 5 || num == 6 || num == 0xA5 || num == 0xA6) continue;
@@ -116,6 +122,7 @@ App({
           sputil.putDeviceIdAndMac(device.deviceId, mac);
           sputil.putDeviceType(device.deviceId, deviceType);
 
+          //已缓存的设备列表
           const devices = sputil.getDevices();
           var contains = false;
           if (typeof (devices) == 'object') {
@@ -142,7 +149,7 @@ App({
               type: deviceType,
               version: version
             };
-            //console.info('myDevice', myDevice);
+            console.info('myDevice', myDevice);
             onfire.fire('onBluetoothDeviceFound_userConsole', myDevice);
           }
 
@@ -218,6 +225,15 @@ App({
     })
     this.globalData.appHidden = false;
   },
+
+  onHide: function () {
+    bleproxy.stopLeScan()
+    this.globalData.appHidden = true
+    onfire.fire('onAppHide_index', {
+      hidden: true
+    })
+  },
+///------------------------------------------------------------------
 
   getDevicesFromCloud() {
     dbutil.getDevices(res => {
@@ -329,15 +345,6 @@ App({
     });
   },
 
-  onHide: function () {
-    bleproxy.stopLeScan()
-    this.globalData.appHidden = true
-    onfire.fire('onAppHide_index', {
-      hidden: true
-    })
-  },
-
-
   getOpenid: async function () {
     var that = this
     // 调用云函数
@@ -366,43 +373,52 @@ App({
     });
   },
 
-
+  // 用户是否可用
   isUserAvailable() {
-    const device = sputil.getSelectedDevice();
-    if (device == null) return true;
+    const device = sputil.getSelectedDevice()
+    if (device == null) return false;
 
+    //1.判断是否免费类型设备
     if (this.isFreeDevice(device)) {
-      return true; //免费类型设备
+      return true; 
     }
 
+    //2.付费产品
+    // 需要判断是否付费
+    //缓存查看 是否已经付费 
     let b = sputil.isPaySuccess();
     if (b) {
       return true;
     }
+    
     //已经付费或者已经绑定激活码，视为激活用户，使用不受限制
+    // 激活码付费
     if (this.globalData.myuser) {
       var isVip = this.globalData.myuser.hasOwnProperty('is_vip') && this.globalData.myuser.is_vip;
-      return isVip || this.globalData.isActivated;
+      // return isVip || this.globalData.isActivated;
+      return isVip
     }
+
+    // 不可用
     return false;
   },
 
-  //免费型号
+  //是否免费型号设备
   isFreeDevice(device) {
+    //v2(都可以点击, 后台需要付费) 
+    //v4(20 次点击,后台需要付费)  
+    //v8/v9(免费全功能)
     console.info('isFreeDevice() - device =', device);
     if (device.type == '') return true;
     let num = util.deviceTypeNum(device.type);
     // if(num == 4) {
     //   return false;// BA04 是付费版本，带感应功能
     // }
-    return num >= 7;
-  },
 
-  globalData: {
-    openid: '',
-    myuser: {},
-    isNetworkOn: true,
-    appHidden: true,
-    isActivated: false //账号是否已通过激活码激活
+
+
+    return num >= 7;
   }
+
+
 })

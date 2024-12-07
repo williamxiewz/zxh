@@ -15,8 +15,9 @@
 .swipe_bg_on {
   height: 120rpx;
   border-radius: 65rpx;
-  background-color: #1f9c94;
+  /* background-color: #27E9DF; */
 } 
+
 .swipe_bg_on .contentV {
    display: flex;
    justify-content: center; 
