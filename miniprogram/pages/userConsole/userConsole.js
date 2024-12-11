@@ -454,7 +454,7 @@ onUnload: function () {
                 if (res2.result.stats.removed > 0 || res2.result.stats.updated > 0) {
                   that.doDelete(item);
                   if (that.isGanyingAvailable(item)) {
-                    that.tipAfterDelete(item.type);
+                    that.tipAfterDelete(item);
                   }
                 }
               });
@@ -650,22 +650,24 @@ onUnload: function () {
       })
   },
   ///
-  tipAfterDelete: function (deviceType) {
-    var productNo = 'XX';
-    if (deviceType == '+BA02') {
-      productNo = '02'
-    }
-    if (deviceType == '+BA03') {
-      productNo = '03'
-    }
-    if (deviceType == '+BA08') {
-      productNo = '08'
-    }
-    if (deviceType == '+BA09') {
-      productNo = '09'
-    }
+  tipAfterDelete: function (deviceItem) {
+    // let deviceType = deviceItem.type
+    // var productNo = 'XX';
+    // if (deviceType == '+BA02') {
+    //   productNo = '02'
+    // }
+    // if (deviceType == '+BA03') {
+    //   productNo = '03'
+    // }
+    // if (deviceType == '+BA08') {
+    //   productNo = '08'
+    // }
+    // if (deviceType == '+BA09') {
+    //   productNo = '09'
+    // }
+    let dName = deviceItem.name.slice(0, 8) 
     wx.showModal({
-      content: '确保设备能再次与手机配对，请进入手机-设置-蓝牙-选择 ZXH_BA' + productNo + '****设备点击取消配对或忽略此设备',
+      content: '确保设备能再次与手机配对，请进入手机-设置-蓝牙-选择' + dName + '****设备点击取消配对或忽略此设备',
       showCancel: false
     });
   },

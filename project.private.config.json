@@ -3,5 +3,6 @@
   "projectname": "taibang",
   "setting": {
     "compileHotReLoad": true
-  }
+  },
+  "libVersion": "3.7.0"
 }
