@@ -21,8 +21,6 @@
     "compileHotReLoad": false,
     "lazyloadPlaceholderEnable": false,
     "useMultiFrameRuntime": true,
-    "useApiHook": true,
-    "useApiHostProcess": true,
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],
@@ -41,9 +39,6 @@
     "ignoreUploadUnusedFiles": true,
     "condition": false
   },
-  "appid": "wx7e14ec889a4221db",
-  "projectname": "zhongxinhui",
-  "libVersion": "2.15.0",
   "condition": {
     "miniprogram": {
       "list": [
@@ -57,13 +52,15 @@
   },
   "compileType": "miniprogram",
   "srcMiniprogramRoot": "miniprogram/",
-  "packOptions": {
-    "ignore": [],
-    "include": []
-  },
   "editorSetting": {
     "tabIndent": "insertSpaces",
     "tabSize": 2
   },
-  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
+  "appid": "wx7e14ec889a4221db",
+  "libVersion": "2.15.0",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  }
 }
