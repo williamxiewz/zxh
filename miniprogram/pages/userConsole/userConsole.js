@@ -19,13 +19,14 @@ const DEVICE_STATES = [
   '监测', //5
   '报警'  //6
 ]
-
+const themeTypeArray = ['火迪智控','台邦智控']
 const ADD_DEVICE_TIMEOUT = 30000 //30秒配对超时
 const ADD_DEVICE_MSG = '请使用原车遥控器同时按住锁键和开锁键3秒，等待主机“DI”一声提示后松开按键，等待防盗器主机 BI/BI/BI 响三声后即配对成功。'
 //我的设备MAC：383995486621
 Page({
   data: {
-    appVersion:'V1.0.4',
+    appVersion:'V1.0.5',
+    app:getApp(),
     canIUseGetUserProfile: false,
     logged: false,
     avatarUrl: './user-unlogin.png',
@@ -252,6 +253,11 @@ onShow: function () {
       timingFunc: 'easeIn'
     }
   });
+
+  wx.setNavigationBarTitle({
+    title: sputil.getThemeTitle()
+  })
+
   if (typeof this.getTabBar === 'function' && this.getTabBar()) {
     this.getTabBar().setData({
       selected: 1,
@@ -723,14 +729,23 @@ onUnload: function () {
       let headStr = nameStr.slice(0, 2)
       var tnum = 0
       if (headStr == "TB") { 
-        tnum = 0
-      } else if(headStr == "HD"){
         tnum = 1
+      } else if(headStr == "HD"){
+        tnum = 0
       }
+
+      let themeTitle = themeTypeArray[tnum]
+
       onfire.fire('onChangeTheme_index',{
-        themenum:tnum
+        themenum:tnum,
+        themetitle:themeTitle
       });
 
+      sputil.putThemeTitle(themeTitle)
+
+      wx.setNavigationBarTitle({
+        title: themeTitle
+      })
   }, 
   onSensitivityChange: function (e) {
       console.log('灵敏度调节', e.detail.value)

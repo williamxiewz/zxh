@@ -28,10 +28,13 @@ const MP3_ID_ARRAY = [
   'cloud://zxh-9g5pei38c7cdc56d.7a78-zxh-9g5pei38c7cdc56d-1304902263/audios/error.mp3' //error
 ]
 
+const themeTypeArray = ['火迪智控','台邦智控']
+
 Page({
   data: {
-    //
     theme:0,
+    themetitle:'',
+    app:getApp(),
     logo: '', //标题
     deviceState: -1, //设备状态
     bluetoothAvailable: false,
@@ -52,12 +55,12 @@ Page({
     ganyingOn: false, //感应是否打开
     ganyingValue: 3, //
     is_kzb: false //是否是开坐包设备
+    
   },
   
   // 生命周期
   onLoad: function () {
     var that = this;
-
     wx.getBluetoothAdapterState({
       success: (result) => {
         that.setData({
@@ -145,18 +148,24 @@ Page({
 
     //监听 index 首页主题更换
     onfire.on('onChangeTheme_index', function (res) {
-      // 0 台邦， 1 火迪
+      // 0 火迪
+      // 1 台邦， 
       that.setData({
-        theme: res.themenum
+        theme: res.themenum,
+        themetitle:res.themetitle
+      })
+
+      wx.setNavigationBarTitle({
+        title: sputil.getThemeTitle()
       })
 
     })
 
   }, 
 
-
   onShow: function () {
     var that = this;
+
     //状态栏颜色
     wx.setNavigationBarColor({
       frontColor: '#000000',
@@ -166,6 +175,11 @@ Page({
         timingFunc: 'easeIn'
       }
     });
+
+    wx.setNavigationBarTitle({
+      title: sputil.getThemeTitle()
+    })
+
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({
         selected: 0,

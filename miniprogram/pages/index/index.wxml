@@ -1,6 +1,103 @@
 <view class="container">
-<!-- 台邦 -->
+<!-- 火迪 -->
 <view class="container-r" style="width:100%;display: block;" wx:if="{{theme == 0}}">
+    <image src="../../images/hd/ctrl_bg.png" style="position:absolute;width:100%;" mode="widthFix" />
+    
+    <view class="container-h" style="width:100%;height:96rpx;align-items:center;position: absolute;">
+      <image src="../../images/hd/{{connected?'logo':'logo_gray'}}.png" style="width: 85rpx;  margin-left: 20rpx;" mode="widthFix"></image>
+      <view style="flex:1;"/>
+      <!-- <view>火迪智控</view> -->
+      <!-- <view style="flex:1;"/> -->
+      <!-- <view ></view> -->
+    </view>
+    <view class="container-v" style="width:100%;position: absolute; margin-top: 100rpx;">
+      <image src="../../images/hd/ic_scancode.png" style="height:74rpx;margin-left:20rpx; margin-top: 20rpx;" mode="heightFix" bindtap="scanCode" />
+      <image src="{{bluetoothAvailable? '../../images/hd/ic_bluetooth_blue.png':'../../images/hd/ic_bluetooth_red.png'}}" style="height:74rpx; margin-left: 20rpx; margin-top: 20rpx;" mode="heightFix"/>
+      <view style="flex:1;"/>
+     </view>
+
+    <image src="../../images/hd/{{connected?'large_logo_connected':'large_logo_gray'}}.png" style="position:absolute;width:80%;margin-top: 5%; margin-left: 15%;" mode="widthFix" />
+     
+    <!-- <view class="container-v bottom_bg" style="position:absolute;height: 200rpx;margin-top:670rpx;margin-left: 2.5%;" /> -->
+
+    <image src="../../images/hd/img_moto_normal.png" style="position:absolute;width:100%;margin-top:150rpx;padding: 0rpx 20rpx;" mode="widthFix"/>
+
+    <view class="container-v bottom_bg" style="position:absolute;height: 400rpx;margin-top:840rpx;margin-left: 2.5%; background-color:white; " />
+
+    <view class="container-r" style="margin-top: 940rpx;z-index: 2;">
+      <swipe-button style="width: 80%;position: absolute;" bindvaluechange="onStartValueChange" enabled="{{connected}}" 
+      on="{{connected&&selectedBtn==0}}" isHDTheme="{{true}}" />
+    </view>
+    
+    <view  class="Line" style="width: 80%;position: absolute;margin-top:100rpx; margin-left: 10%;" />
+
+    <view class="container-v" style="margin-top: 200rpx;z-index: 2;">
+      <!-- iOS margin-top 不好使，这里使用View填充一下 -->
+      <view wx:if="{{platform=='ios'}}" style="height: 160rpx;width: 100%;" />
+      <!-- 未连接设备时的4个功能按键 -->
+      <view class="container-r" style="display:{{connected? 'none':'flex'}};">
+        <view class="container-h bottom_bg" style="position: absolute;background-color:white; ">
+          <!-- <view style="flex: 0.5;"></view> -->
+          <view class="container-r btn_lay">
+            <image src="../../images/hd/btn_lock_disabled.png" class="btn_nor_hd" mode="heightFix" />
+          </view>
+          <view class="container-r btn_lay">
+            <image src="../../images/hd/btn_unlock_disabled.png" class="btn_nor_hd" mode="heightFix" />
+          </view>
+          <view class="container-r btn_lay">
+            <image src="../../images/hd/{{is_kzb?'btn_kzb_disabled':'btn_call_disabled'}}.png" class="btn_nor_hd" mode="heightFix" />
+          </view>
+          <view class="container-r btn_lay">
+            <image src="../../images/hd/btn_mute_disabled.png" class="btn_nor_hd" mode="heightFix" />
+          </view>
+          <!-- <view style="flex: 0.5;"></view> -->
+        </view>
+      </view>
+      <!-- 连接设备时的五个功能按键 -->
+      <view class="container-r" style="display:{{connected? 'flex':'none'}};">
+        <view class="container-h bottom_bg" style="position: absolute;background-color:white; ">
+          <!-- <view style="flex: 0.5;"></view> -->
+          <!-- 上锁 -->
+          <view class="container-r btn_lay">
+            <image src="{{selectedBtn === 1 ? '../../images/hd/btn_lock_active.png' : '../../images/hd/btn_lock.png'}}" class="btn_nor_hd" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="1" />
+          </view>
+          <!-- 解锁 -->
+          <view class="container-r btn_lay">
+            <image src="{{selectedBtn === 2 ? '../../images/hd/btn_unlock_active.png' : '../../images/hd/btn_unlock.png'}}" class="btn_nor_hd" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="2" />
+          </view>
+          <!-- 寻车 -->
+          <view class="container-r btn_lay" style="display: {{is_kzb?'none':'flex'}};">
+            <image src="{{selectedBtn === 3 ? '../../images/hd/btn_call_active.png' : '../../images/hd/btn_call.png'}}" class="btn_nor_hd" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3" />
+          </view>
+          <!-- 开坐包 -->
+          <view class="container-r btn_lay" style="display: {{is_kzb?'flex':'none'}};">
+            <image src="{{selectedBtn === 3 ? '../../images/hd/btn_kzb_active.png' : '../../images/hd/btn_kzb.png'}}" class="btn_nor_hd" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3" />
+          </view>
+          <!-- 静音 -->
+          <view class="container-r btn_lay">
+            <image src="{{selectedBtn === 4 ? '../../images/hd/btn_mute_active.png' : '../../images/hd/btn_mute.png'}}" class="btn_nor_hd" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="4" />
+          </view>
+          <!-- <view style="flex: 0.5;"></view> -->
+        </view>
+      </view>
+      <!--  -->
+      <view class="container-r" style="width: 100%;margin-top: 100rpx;">
+        <view class="container-h bottom_bg" style="position: absolute; background-color:white; ">
+          <!-- <view style="flex: 0.5;"></view> -->
+          <text class="btn_label" style="color: {{connected&&selectedBtn==1?'black':'gray'}};">上锁</text>
+          <text class="btn_label" style="color: {{connected&&selectedBtn==2?'black':'gray'}};">解锁</text>
+          <text class="btn_label" style="color: {{connected&&selectedBtn==3?'black':'gray'}};">{{is_kzb?'开坐包':'寻车'}}</text>
+          <text class="btn_label" style="color: {{connected&&selectedBtn==4?'black':'gray'}};">静音</text>
+          <!-- <view style="flex: 0.5;"></view> -->
+        </view>
+      </view>
+    </view>
+
+
+
+</view>
+<!-- 台邦 -->
+<view class="container-r" style="width:100%;display: block;" wx:if="{{theme == 1}}">
     <image src="../../images/ctrl_bg.png" style="position:absolute;width:100%;" mode="widthFix" />
     <!-- 标题栏 -->
     <view class="container-h" style="width:100%;height:96rpx;align-items:center;position: absolute;">
@@ -102,102 +199,4 @@
       </view>
     </view>
 </view>
-<!-- 火迪 -->
-<view class="container-r" style="width:100%;display: block;" wx:if="{{theme == 1}}">
-    <image src="../../images/hd/ctrl_bg.png" style="position:absolute;width:100%;" mode="widthFix" />
-    
-    <view class="container-h" style="width:100%;height:96rpx;align-items:center;position: absolute;">
-      <image src="../../images/hd/logo.png" style="width: 85rpx;  margin-left: 20rpx;" mode="widthFix"></image>
-      <view style="flex:1;"/>
-      <!-- <view>火迪智控</view> -->
-      <!-- <view style="flex:1;"/> -->
-      <!-- <view ></view> -->
-    </view>
-    <view class="container-v" style="width:100%;position: absolute; margin-top: 100rpx;">
-      <image src="../../images/hd/ic_scancode.png" style="height:74rpx;margin-left:20rpx; margin-top: 20rpx;" mode="heightFix" bindtap="scanCode" />
-      <image src="{{bluetoothAvailable? '../../images/hd/ic_bluetooth_blue.png':'../../images/hd/ic_bluetooth_red.png'}}" style="height:74rpx; margin-left: 20rpx; margin-top: 20rpx;" mode="heightFix"/>
-      <view style="flex:1;"/>
-     </view>
-
-    <image src="../../images/hd/{{connected?'large_logo_connected':'large_logo_gray'}}.png" style="position:absolute;width:80%;margin-top: 5%; margin-left: 15%;" mode="widthFix" />
-
-    <!-- <view class="container-v bottom_bg" style="position:absolute;height: 200rpx;margin-top:670rpx;margin-left: 2.5%;" /> -->
-
-    <image src="../../images/hd/img_moto_normal.png" style="position:absolute;width:100%;margin-top:150rpx;padding: 0rpx 20rpx;" mode="widthFix"/>
-
-    <view class="container-v bottom_bg" style="position:absolute;height: 400rpx;margin-top:840rpx;margin-left: 2.5%; background-color:white; " />
-
-    <view class="container-r" style="margin-top: 940rpx;z-index: 2;">
-      <swipe-button style="width: 80%;position: absolute;" bindvaluechange="onStartValueChange" enabled="{{connected}}" 
-      on="{{connected&&selectedBtn==0}}" isHDTheme="{{true}}" />
-    </view>
-    
-    <view  class="Line" style="width: 80%;position: absolute;margin-top:100rpx; margin-left: 10%;" />
-
-    <view class="container-v" style="margin-top: 200rpx;z-index: 2;">
-      <!-- iOS margin-top 不好使，这里使用View填充一下 -->
-      <view wx:if="{{platform=='ios'}}" style="height: 160rpx;width: 100%;" />
-      <!-- 未连接设备时的4个功能按键 -->
-      <view class="container-r" style="display:{{connected? 'none':'flex'}};">
-        <view class="container-h bottom_bg" style="position: absolute;background-color:white; ">
-          <!-- <view style="flex: 0.5;"></view> -->
-          <view class="container-r btn_lay">
-            <image src="../../images/hd/btn_lock_disabled.png" class="btn_nor_hd" mode="heightFix" />
-          </view>
-          <view class="container-r btn_lay">
-            <image src="../../images/hd/btn_unlock_disabled.png" class="btn_nor_hd" mode="heightFix" />
-          </view>
-          <view class="container-r btn_lay">
-            <image src="../../images/hd/{{is_kzb?'btn_kzb_disabled':'btn_call_disabled'}}.png" class="btn_nor_hd" mode="heightFix" />
-          </view>
-          <view class="container-r btn_lay">
-            <image src="../../images/hd/btn_mute_disabled.png" class="btn_nor_hd" mode="heightFix" />
-          </view>
-          <!-- <view style="flex: 0.5;"></view> -->
-        </view>
-      </view>
-      <!-- 连接设备时的五个功能按键 -->
-      <view class="container-r" style="display:{{connected? 'flex':'none'}};">
-        <view class="container-h bottom_bg" style="position: absolute;background-color:white; ">
-          <!-- <view style="flex: 0.5;"></view> -->
-          <!-- 上锁 -->
-          <view class="container-r btn_lay">
-            <image src="{{selectedBtn === 1 ? '../../images/hd/btn_lock_active.png' : '../../images/hd/btn_lock.png'}}" class="btn_nor_hd" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="1" />
-          </view>
-          <!-- 解锁 -->
-          <view class="container-r btn_lay">
-            <image src="{{selectedBtn === 2 ? '../../images/hd/btn_unlock_active.png' : '../../images/hd/btn_unlock.png'}}" class="btn_nor_hd" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="2" />
-          </view>
-          <!-- 寻车 -->
-          <view class="container-r btn_lay" style="display: {{is_kzb?'none':'flex'}};">
-            <image src="{{selectedBtn === 3 ? '../../images/hd/btn_call_active.png' : '../../images/hd/btn_call.png'}}" class="btn_nor_hd" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3" />
-          </view>
-          <!-- 开坐包 -->
-          <view class="container-r btn_lay" style="display: {{is_kzb?'flex':'none'}};">
-            <image src="{{selectedBtn === 3 ? '../../images/hd/btn_kzb_active.png' : '../../images/hd/btn_kzb.png'}}" class="btn_nor_hd" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3" />
-          </view>
-          <!-- 静音 -->
-          <view class="container-r btn_lay">
-            <image src="{{selectedBtn === 4 ? '../../images/hd/btn_mute_active.png' : '../../images/hd/btn_mute.png'}}" class="btn_nor_hd" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="4" />
-          </view>
-          <!-- <view style="flex: 0.5;"></view> -->
-        </view>
-      </view>
-      <!--  -->
-      <view class="container-r" style="width: 100%;margin-top: 100rpx;">
-        <view class="container-h bottom_bg" style="position: absolute; background-color:white; ">
-          <!-- <view style="flex: 0.5;"></view> -->
-          <text class="btn_label" style="color: {{connected&&selectedBtn==1?'black':'gray'}};">上锁</text>
-          <text class="btn_label" style="color: {{connected&&selectedBtn==2?'black':'gray'}};">解锁</text>
-          <text class="btn_label" style="color: {{connected&&selectedBtn==3?'black':'gray'}};">{{is_kzb?'开坐包':'寻车'}}</text>
-          <text class="btn_label" style="color: {{connected&&selectedBtn==4?'black':'gray'}};">静音</text>
-          <!-- <view style="flex: 0.5;"></view> -->
-        </view>
-      </view>
-    </view>
-
-
-
-</view>
-
 </view>

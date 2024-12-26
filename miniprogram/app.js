@@ -27,7 +27,6 @@ App({
     isNetworkOn: true,
     appHidden: true,
     isActivated: false, //账号是否已通过激活码激活
-    theme:0,
   },
 
 ///------------------------------------------------------------------
