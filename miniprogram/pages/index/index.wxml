@@ -4,9 +4,13 @@
     <image src=" {{connected?'../../images/ctrl_bg.png':'../../images/ctrl_bg_disabled.png' }}" style="position:absolute;width:100%;" mode="widthFix" />
 
     <view class="container-h" style="width:100%;height:96rpx;align-items:center;position: absolute;">
-      <image src="../../images/logo.png" style="width: 85rpx;  margin-left: 20rpx;" mode="widthFix"></image>
+
+      <image  wx:if="{{connected}}" src="{{theme==0? '../../images/logo.png':'../../images/hh/logo.png'}}" style="width: 85rpx;  margin-left: 20rpx;" mode="widthFix"  />
+
+      
       <view style="flex:1;"/>
-      <view>宗申智控</view>
+      <!-- <view>宗申智控</view> -->
+      <view wx:if="{{connected}}">{{themetitle}}</view>
       <view style="flex:1;"/>
       <image src="../../images/ic_scancode.png" style="height:74rpx;margin-right:20rpx;" mode="heightFix" bindtap="scanCode" />
     </view>
@@ -18,8 +22,16 @@
    
     <!-- 白色背景 -->
     <view class="container-v bottom_bg" style="position:absolute;height: 200rpx;margin-top:700rpx;margin-left: 2.5%;"/>
+    
     <!-- 电车图片 -->
-    <image src="../../images/img_moto_normal.png" style="position:absolute;width:100%;margin-top:190rpx;padding: 0px 10rpx;" mode="widthFix"/>
+    <view wx:if="{{connected}}">
+      <image wx:if="{{theme == 0}}" src="../../images/img_moto_normal.png" style="position:absolute;width:100%;margin-top:190rpx;padding: 0px 10rpx;" mode="widthFix"/>
+      <image wx:if="{{theme == 1}}" src="../../images/hh/img_moto_normal.png" style="position:absolute;width:100%;margin-top:190rpx;padding: 0px 10rpx;" mode="widthFix"/>
+    </view>
+    <view wx:else>
+      <image src="../../images/img_moto_unpair.png" style="position:absolute;width:100%;margin-top:190rpx;padding: 0px 10rpx;" mode="widthFix"/>
+    </view>
+   
 
     <!-- 白色背景 -->
     <view class="container-v bottom_bg" style="position:absolute;height: 400rpx;margin-top:880rpx;margin-left: 2.5%;" />

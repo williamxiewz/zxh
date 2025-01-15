@@ -7,8 +7,18 @@ const putLogo = (logo) => {
 const getLogo = () => {
   //默认：众鑫汇智控
   var logo = wx.getStorageSync('settings_logo')
+  if (logo == '') return ''
+  return logo
+}
+
+const getThemeTitle = () => {
+  var logo = wx.getStorageSync('settings_themetitle')
   if (logo == '') return '宗申智控'
   return logo
+}
+
+const putThemeTitle = (theme) => {
+  wx.setStorageSync('settings_themetitle', theme)
 }
 
 const putDeviceId = (deviceId) => {
@@ -161,6 +171,7 @@ const getPhoneNumber = () => {
   return wx.getStorageSync('phoneNumber');
 }
 
+
 module.exports = {
   putLogo: putLogo,
   getLogo: getLogo,
@@ -188,5 +199,7 @@ module.exports = {
   isSendEnableGanyingCmd: isSendEnableGanyingCmd,
   setSendEnableGanyingCmd: setSendEnableGanyingCmd,  
   putDeviceType: putDeviceType,  
-  getDeviceTypeById: getDeviceTypeById
+  getDeviceTypeById: getDeviceTypeById,
+  getThemeTitle:getThemeTitle,
+  putThemeTitle:putThemeTitle,
 }

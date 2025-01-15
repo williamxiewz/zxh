@@ -27,9 +27,12 @@ const MP3_ID_ARRAY = [
   'cloud://zxh-9g5pei38c7cdc56d.7a78-zxh-9g5pei38c7cdc56d-1304902263/audios/alarmhorn.mp3', //报警
   'cloud://zxh-9g5pei38c7cdc56d.7a78-zxh-9g5pei38c7cdc56d-1304902263/audios/error.mp3' //error
 ]
+const themeTypeArray = ['宗申智控','淮海智控']
 
 Page({
   data: {
+    theme:0,
+    themetitle:'',
     logo: '', //标题
     deviceState: -1, //设备状态
     bluetoothAvailable: false,
@@ -141,6 +144,20 @@ Page({
       }
     })
 
+    //监听 index 首页主题更换
+    onfire.on('onChangeTheme_index', function (res) {
+      // 0 宗申 
+      // 1 淮海， 
+      that.setData({
+        theme: res.themenum,
+        themetitle:res.themetitle
+      })
+
+      wx.setNavigationBarTitle({
+        title: sputil.getThemeTitle()
+      })
+
+    })
   }, 
 
 
@@ -155,6 +172,7 @@ Page({
         timingFunc: 'easeIn'
       }
     });
+
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({
         selected: 0,
@@ -170,8 +188,14 @@ Page({
     that.setData({
       logo: sputil.getLogo(),
       connected: isConnected,
-      is_kzb: selectedDevice && selectedDevice.name.startsWith('ZS2')
+      is_kzb: selectedDevice && selectedDevice.name.startsWith('ZS2') || selectedDevice && selectedDevice.name.startsWith('HH2')
     })
+
+    if (isConnected) {
+      wx.setNavigationBarTitle({
+        title: sputil.getThemeTitle()
+      })
+    }
 
     wx.getSystemInfo({
       success: (result) => {

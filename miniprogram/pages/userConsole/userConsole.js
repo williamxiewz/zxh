@@ -19,13 +19,13 @@ const DEVICE_STATES = [
   '监测', //5
   '报警'  //6
 ]
-
+const themeTypeArray = ['宗申智控','淮海智控']
 const ADD_DEVICE_TIMEOUT = 30000 //30秒配对超时
 const ADD_DEVICE_MSG = '请使用原车遥控器同时按住锁键和开锁键3秒，等待主机“DI”一声提示后松开按键，等待防盗器主机 BI/BI/BI 响三声后即配对成功。'
 //我的设备MAC：383995486621
 Page({
   data: {
-    appVersion:'V1.0.1',
+    appVersion:'V1.1.0',
     canIUseGetUserProfile: false,
     logged: false,
     avatarUrl: './user-unlogin.png',
@@ -252,6 +252,14 @@ onShow: function () {
       timingFunc: 'easeIn'
     }
   });
+  
+  // let selectedDevice = sputil.getSelectedDevice();
+  // const isConnected = bleproxy.isConnected(bleproxy.getCurrentDeviceId()); 
+
+  wx.setNavigationBarTitle({
+    title: sputil.getThemeTitle()
+  })
+
   if (typeof this.getTabBar === 'function' && this.getTabBar()) {
     this.getTabBar().setData({
       selected: 1,
@@ -261,6 +269,7 @@ onShow: function () {
   //云数据库获取用户的设备
   console.info('userConsole.js onShow()');
   this.getDevicesFromCloud();
+  
 },
 
 onUnload: function () {
@@ -408,6 +417,9 @@ onUnload: function () {
                 ganyingAvailable: that.isGanyingAvailable(item)
               });
               
+              //切换主题
+              that.onIndexThemeChange(item.name)
+
               //设置感应开关状态，分享来的设备不勾选
               if (that.data.isGanyingAvailable && !that.isSharedDevice() || !app.isUserAvailable()) {
                 that.setData({
@@ -500,7 +512,7 @@ onUnload: function () {
     sputil.putDeviceId(myDevice.deviceId);
     bleproxy.setCurrentDeviceId(myDevice.deviceId);
     sputil.putDevices(devices);
-
+    that.onIndexThemeChange(myDevice.name)
     //绑定成功后
     if (app.isUserAvailable()) {
       //发起HID配对
@@ -706,7 +718,30 @@ onUnload: function () {
 
 /// 功能相关
 ///----------------------------------------------------------------
-  
+
+  onIndexThemeChange: function (nameStr) {
+    let headStr = nameStr.slice(0, 2)
+    var tnum = 0
+    if (headStr == "ZS") { 
+      tnum = 0
+    } else if(headStr == "HH"){
+      tnum = 1
+    }
+
+    let themeTitle = themeTypeArray[tnum]
+
+    onfire.fire('onChangeTheme_index',{
+      themenum:tnum,
+      themetitle:themeTitle
+    });
+
+    sputil.putThemeTitle(themeTitle)
+
+    wx.setNavigationBarTitle({
+      title: themeTitle
+    })
+  },   
+
   onSensitivityChange: function (e) {
       console.log('灵敏度调节', e.detail.value)
       this.data.sensitivity = e.detail.value
@@ -951,6 +986,14 @@ onUnload: function () {
           showJiHuoButton: false //that.isShowJiHuoButton()
         });
         ////
+
+
+        const result = that.findMacInArray(devices,mac)
+      //  console.log('resultdevicesdevicesdevicesdevices',result)
+       if (result!= null&& result.length>0) {
+        that.onIndexThemeChange(result[0].name) 
+       }
+        
       })
   },
 ///----------------------------------------------------------------
@@ -1257,6 +1300,15 @@ onUnload: function () {
       },
       tempLogo: ''
     })
+  },
+  findMacInArray: function(arr, targetMac) {
+    // 判断数组是否为空
+    if (Array.isArray(arr) && arr.length > 0) {
+      // 使用 filter 找到符合条件的数组元素
+      const result = arr.filter(item => item.mac === targetMac);
+      return result.length > 0 ? result : null; // 如果找到了相同的 mac 值，返回结果，否则返回 null
+    }
+    return null; // 数组为空时返回 null
   },
 ///----------------------------------------------------------------
 

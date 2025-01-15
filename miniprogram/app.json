@@ -6,11 +6,7 @@
     "pages/activation/activation"
   ],
   "window": {
-    "backgroundColor": "#F6F6F6",
-    "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#F6F6F6",
-    "navigationBarTitleText": "宗申智控",
-    "navigationBarTextStyle": "black"
+    "navigationBarStyle":"custom"
   },
   "usingComponents": {
     "van-count-down": "./dist/count-down/index"
