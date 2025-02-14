@@ -721,6 +721,9 @@ onUnload: function () {
 
   onIndexThemeChange: function (nameStr) {
     let headStr = nameStr.slice(0, 2)
+
+    if (headStr == "+") {return }
+
     var tnum = 0
     if (headStr == "ZS") { 
       tnum = 0
