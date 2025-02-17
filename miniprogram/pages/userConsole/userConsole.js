@@ -25,7 +25,7 @@ const ADD_DEVICE_MSG = '请使用原车遥控器同时按住锁键和开锁键3�
 //我的设备MAC：383995486621
 Page({
   data: {
-    appVersion:'V1.1.0',
+    appVersion:'V1.1.1',
     canIUseGetUserProfile: false,
     logged: false,
     avatarUrl: './user-unlogin.png',
@@ -722,7 +722,7 @@ onUnload: function () {
   onIndexThemeChange: function (nameStr) {
     let headStr = nameStr.slice(0, 2)
 
-    if (headStr == "+") {return }
+    if (headStr == "+") { return }
 
     var tnum = 0
     if (headStr == "ZS") { 
