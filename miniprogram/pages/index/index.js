@@ -159,8 +159,6 @@ Page({
 
     })
   }, 
-
-
   onShow: function () {
     var that = this;
     //状态栏颜色
@@ -182,9 +180,7 @@ Page({
     let selectedDevice = sputil.getSelectedDevice();
     const isConnected = bleproxy.isConnected(bleproxy.getCurrentDeviceId());
     that.startTimer();
-
     console.error('xxxxxxxxxxxxxxxxxxxxxxxxxxx bleproxy.getCurrentDeviceId()=' + bleproxy.getCurrentDeviceId());
-
     that.setData({
       logo: sputil.getLogo(),
       connected: isConnected,
