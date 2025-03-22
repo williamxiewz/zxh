@@ -3,20 +3,20 @@ const URL_BIND_CODE = 'https://www.szzxh.top/api/device/bind_device'; //绑定�
 const URL_CHECK_USER = 'https://www.szzxh.top/api/device/check_user'; //检查账号是否激活
 
 const checkCode = (code, success, fail) => {
-  // console.log('checkCode', code);
-  // wx.request({
-  //   url: URL_CHECK_CODE,
-  //   method: 'POST',
-  //   dataType: 'json',
-  //   header: {
-  //     'content-type': 'application/x-www-form-urlencoded'
-  //   },
-  //   data: {
-  //     device_code: code
-  //   },
-  //   success: success,
-  //   fail: fail
-  // })
+  console.log('checkCode', code);
+  wx.request({
+    url: URL_CHECK_CODE,
+    method: 'POST',
+    dataType: 'json',
+    header: {
+      'content-type': 'application/x-www-form-urlencoded'
+    },
+    data: {
+      device_code: code
+    },
+    success: success,
+    fail: fail
+  })
 }
 
 /**

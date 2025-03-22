@@ -11,17 +11,11 @@ var currentDeviceId = '';
 
 const setCurrentDeviceId = (deviceId) => {
   currentDeviceId = deviceId;
-}
-const getCurrentDeviceId = () => {
-  return currentDeviceId;
+  console.error('currentDeviceId = ' + currentDeviceId);
 }
 
-//关闭手机蓝牙时调用
-const removeAllDeviceIds = () => {
-  // connectedIdArr.forEach((item, index, arr) => {
-  //   disconnect(item);
-  // });
-  connectedIdArr.length = 0; //清空数组
+const getCurrentDeviceId = () => {
+  return currentDeviceId;
 }
 
 const addDeviceId = (deviceId) => {
@@ -38,6 +32,11 @@ const isConnected = (str) => {
     }
   }
   return false;
+}
+
+//关闭手机蓝牙的时候调用
+const removeAllDeviceIds = () => {
+  connectedIdArr.length = 0;
 }
 
 const removeDeviceId = (str) => {
@@ -376,11 +375,11 @@ module.exports = {
   disconnect: disconnect,
   addDeviceId: addDeviceId,
   removeDeviceId: removeDeviceId,
+  removeAllDeviceIds: removeAllDeviceIds,
   isConnected: isConnected,
   close: close,
   showModal: showModal,
   writeBLECharacteristic: writeBLECharacteristic,
   setCurrentDeviceId: setCurrentDeviceId,
-  getCurrentDeviceId: getCurrentDeviceId,
-  removeAllDeviceIds: removeAllDeviceIds
+  getCurrentDeviceId: getCurrentDeviceId
 }

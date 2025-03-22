@@ -3,5 +3,6 @@
   "projectname": "xindazhou",
   "setting": {
     "compileHotReLoad": true
-  }
+  },
+  "libVersion": "2.15.0"
 }

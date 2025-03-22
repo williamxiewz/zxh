@@ -53,7 +53,7 @@
         </view>
         <view class="container-r btn_lay">
           <image src="../../images/btn_bg.png" class="btn_bg" mode="heightFix"/>
-          <image src="../../images/{{isCall?'btn_call_disabled':'btn_open_disabled'}}.png" class="btn_nor" mode="heightFix"/>
+          <image src="../../images/{{is_kzb?'btn_open_disabled':'btn_call_disabled'}}.png" class="btn_nor" mode="heightFix"/>
         </view>
         <view class="container-r btn_lay">
           <image src="../../images/btn_bg.png" class="btn_bg" mode="heightFix"/>
@@ -84,7 +84,7 @@
         <view class="container-r btn_lay">
           <image src="../../images/btn_bg.png" class="btn_bg" mode="heightFix"
           bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3"/>
-          <image wx:if="{{isCall}}" src="{{selectedBtn === 3 ? '../../images/btn_call_active.png' : '../../images/btn_call.png'}}" 
+          <image wx:if="{{is_kzb}}" src="{{selectedBtn === 3 ? '../../images/btn_call_active.png' : '../../images/btn_call.png'}}" 
           class="btn_nor"mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3"/>
           <image wx:else src="{{selectedBtn === 3 ? '../../images/btn_open_active.png' : '../../images/btn_open.png'}}" 
           class="btn_nor"mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3"/>
@@ -105,7 +105,7 @@
         <!-- <view style="flex: 0.5;"></view> -->
         <text class="btn_label">上锁</text>
         <text class="btn_label">解锁</text>
-        <text class="btn_label">{{isCall?'寻车':'开座包'}}</text>
+        <text class="btn_label">{{is_kzb?'开座包':'寻车'}}</text>
         <text class="btn_label">静音</text>
         <!-- <view style="flex: 0.5;"></view> -->
       </view>
