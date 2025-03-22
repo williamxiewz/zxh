@@ -253,12 +253,14 @@ onShow: function () {
     }
   });
   
-  // let selectedDevice = sputil.getSelectedDevice();
-  // const isConnected = bleproxy.isConnected(bleproxy.getCurrentDeviceId()); 
+  let selectedDevice = sputil.getSelectedDevice();
+  const isConnected = bleproxy.isConnected(bleproxy.getCurrentDeviceId()); 
+  if (isConnected) {
+    wx.setNavigationBarTitle({
+      title: sputil.getThemeTitle()
+    })
+  }
 
-  wx.setNavigationBarTitle({
-    title: sputil.getThemeTitle()
-  })
 
   if (typeof this.getTabBar === 'function' && this.getTabBar()) {
     this.getTabBar().setData({
@@ -721,7 +723,6 @@ onUnload: function () {
 
   onIndexThemeChange: function (nameStr) {
     let headStr = nameStr.slice(0, 2)
-
     if (headStr == "+") { return }
 
     var tnum = 0
@@ -737,9 +738,9 @@ onUnload: function () {
       themenum:tnum,
       themetitle:themeTitle
     });
-
+    
     sputil.putThemeTitle(themeTitle)
-
+    
     wx.setNavigationBarTitle({
       title: themeTitle
     })
