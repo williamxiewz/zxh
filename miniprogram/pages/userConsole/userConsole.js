@@ -679,6 +679,7 @@ onUnload: function () {
       content: '确保设备能再次与手机配对，请进入手机-设置-蓝牙-选择' + dName + '****设备点击取消配对或忽略此设备',
       showCancel: false
     });
+    
   },
   ///判断当前选中的设备是否是分享来的设备【控制页扫码添加的设备】
   isSharedDevice: function () {
@@ -740,7 +741,7 @@ onUnload: function () {
     });
     
     sputil.putThemeTitle(themeTitle)
-    
+
     wx.setNavigationBarTitle({
       title: themeTitle
     })
