@@ -13,7 +13,7 @@ const getLogo = () => {
 
 const getThemeTitle = () => {
   var logo = wx.getStorageSync('settings_themetitle')
-  if (logo == '') return '宗申智控'
+  if (logo == '') return ''
   return logo
 }
 
