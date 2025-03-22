@@ -19,7 +19,7 @@ const DEVICE_STATES = [
   '监测', //5
   '报警'  //6
 ]
-const themeTypeArray = ['','']
+const themeTypeArray = ['新大洲智控','']
 const ADD_DEVICE_TIMEOUT = 30000 //30秒配对超时
 const ADD_DEVICE_MSG = '请使用原车遥控器同时按住锁键和开锁键3秒，等待主机“DI”一声提示后松开按键，等待防盗器主机 BI/BI/BI 响三声后即配对成功。'
 //我的设备MAC：383995486621
@@ -254,9 +254,9 @@ onShow: function () {
     }
   });
 
-  wx.setNavigationBarTitle({
-    title: sputil.getThemeTitle()
-  })
+  // wx.setNavigationBarTitle({
+  //   title: sputil.getThemeTitle()
+  // })
 
   if (typeof this.getTabBar === 'function' && this.getTabBar()) {
     this.getTabBar().setData({
@@ -720,9 +720,9 @@ onUnload: function () {
   onIndexThemeChange: function (nameStr) {
       let headStr = nameStr.slice(0, 2)
       var tnum = 0
-      if (headStr == "TB") { 
+      if (headStr == "") { 
         tnum = 1
-      } else if(headStr == "HD"){
+      } else if(headStr == ""){
         tnum = 0
       }
 
@@ -734,9 +734,9 @@ onUnload: function () {
       });
 
       sputil.putThemeTitle(themeTitle)
-      wx.setNavigationBarTitle({
-        title: themeTitle
-      })
+      // wx.setNavigationBarTitle({
+      //   title: themeTitle
+      // })
   }, 
   onSensitivityChange: function (e) {
       console.log('灵敏度调节', e.detail.value)

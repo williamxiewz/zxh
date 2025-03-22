@@ -174,9 +174,9 @@ Page({
       }
     });
 
-    wx.setNavigationBarTitle({
-      title: sputil.getThemeTitle()
-    })
+    // wx.setNavigationBarTitle({
+    //   title: sputil.getThemeTitle()
+    // })
 
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({
