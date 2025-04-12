@@ -7,8 +7,18 @@ const putLogo = (logo) => {
 const getLogo = () => {
   //默认：众鑫汇智控
   var logo = wx.getStorageSync('settings_logo')
-  if (logo == '') return '合美智能'
+  if (logo == '') return ''
   return logo
+}
+
+const getThemeTitle = () => {
+  var logo = wx.getStorageSync('settings_themetitle')
+  if (logo == '') return ''
+  return logo
+}
+
+const putThemeTitle = (theme) => {
+  wx.setStorageSync('settings_themetitle', theme)
 }
 
 const putDeviceId = (deviceId) => {
@@ -75,13 +85,13 @@ const getSensitivity = () => {
   return wx.getStorageSync('sensitivity')
 }
 
-//用于根据 deviceId 查询 deviceiType
-const putDeviceType = (deviceId, type) => {
-  wx.setStorageSync(deviceId + '_type', type);
-}
-
-const getDeviceTypeById = (deviceId) => {
-  return wx.getStorageSync(deviceId + '_type');
+//用于根据 deviceId 查询 deviceiType  
+const putDeviceType = (deviceId, type) => {  
+  wx.setStorageSync(deviceId + '_type', type);  
+}  
+ 
+const getDeviceTypeById = (deviceId) => {  
+  return wx.getStorageSync(deviceId + '_type');  
 }
 
 //针对iOS系统deviceId不一样的情况，将MAC与deviceId成对存储
@@ -144,6 +154,7 @@ const setEncrypt = (encrypt) => {
 
 const isSendEnableGanyingCmd = (deviceId) => {
   let v = wx.getStorageSync('is_send_ganying_' + deviceId);
+  console.log('isSendEnableGanyingCmd ,deviceId  ',v ,deviceId)
   return v != '' && v;
 }
 
@@ -159,6 +170,7 @@ const putPhoneNumber = (phoneNumber) => {
 const getPhoneNumber = () => {
   return wx.getStorageSync('phoneNumber');
 }
+
 
 module.exports = {
   putLogo: putLogo,
@@ -185,7 +197,9 @@ module.exports = {
   isPaySuccess: isPaySuccess,
   setPaySuccess: setPaySuccess,
   isSendEnableGanyingCmd: isSendEnableGanyingCmd,
-  setSendEnableGanyingCmd: setSendEnableGanyingCmd,
-  putDeviceType: putDeviceType,
-  getDeviceTypeById: getDeviceTypeById
+  setSendEnableGanyingCmd: setSendEnableGanyingCmd,  
+  putDeviceType: putDeviceType,  
+  getDeviceTypeById: getDeviceTypeById,
+  getThemeTitle:getThemeTitle,
+  putThemeTitle:putThemeTitle,
 }

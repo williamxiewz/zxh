@@ -36,7 +36,11 @@
     "showES6CompileOption": false,
     "useCompilerPlugins": false,
     "ignoreUploadUnusedFiles": true,
-    "condition": false
+    "condition": false,
+    "compileWorklet": false,
+    "localPlugins": false,
+    "swc": false,
+    "disableSWC": true
   },
   "condition": {
     "miniprogram": {
@@ -61,5 +65,6 @@
     "include": []
   },
   "appid": "wxeefab2efe803593a",
-  "projectname": "sanya"
+  "projectname": "sanya",
+  "simulatorPluginLibVersion": {}
 }

@@ -6,6 +6,6 @@
   <cover-view wx:for="{{list}}" wx:key="index" class="tab-bar-item" data-path="{{item.pagePath}}" data-index="{{index}}"
     bindtap="switchTab">
     <!-- 原图尺寸 489 * 138 -->
-    <cover-image src="{{selected === 1 ? item.selectedIconPath : item.iconPath}}"></cover-image>
+    <cover-image src="{{selected === 1 ? item.selectedIconPath : item.iconPath}}" /> 
   </cover-view>
 </cover-view>

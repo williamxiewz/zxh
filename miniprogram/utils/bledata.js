@@ -1,7 +1,7 @@
 const util = require("./util")
 const sputil = require('./sputil')
 const log = require("./log")
-const zxh = require("./zxh")
+const dbutil = require("./dbutil")
 
 const CMD_LOCK = 1 //设防
 const CMD_UNLOCK = 2 //撤防
@@ -16,6 +16,7 @@ const CMD_START = 5
  * @param {*} limitSpeed true-限速，false-不限速
  * @param {*} volume 限速提示音量1~3
  * @param {*} optCode 1-标识设置灵敏度，2-表示设置限速开关，3-表示设置限速提示音量，4-控制功能，5-感应功能（BA02新增）
+ * @param {*} ganying 
  */
 const mkData = (cmdCode, sensitivity, limitSpeed, volume, optCode = 0, ganying) => {
   const ganyingType = typeof (ganying);
@@ -74,8 +75,7 @@ const queryState = () => {
 
 //value 是 ArrayBuffer 类型
 const encryptPayload = (value, complete) => {
-  if(!zxh.isInit()) return;
-  zxh.cloud().callFunction({
+  dbutil.getCloud().callFunction({
     name: 'echo',
     data: {
       action: 'encrypt',
@@ -87,7 +87,7 @@ const encryptPayload = (value, complete) => {
 
 //value 是 ArrayBuffer 类型
 const decryptPayload = (value, complete) => {
-  zxh.cloud().callFunction({
+  dbutil.getCloud().callFunction({
     name: 'echo',
     data: {
       action: 'decrypt',

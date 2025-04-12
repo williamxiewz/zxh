@@ -7,12 +7,12 @@ Component({
     list: [{
       pagePath: "/pages/index/index",
       iconPath: "/images/tab_ctrl.png",
-      selectedIconPath: "/images/tab_ctrl_1.png",
+      selectedIconPath: "/images/tab_ctrl.png",
       text: ""
     }, {
       pagePath: "/pages/userConsole/userConsole",
       iconPath: "/images/tab_settings.png",
-      selectedIconPath: "/images/tab_settings_1.png",
+      selectedIconPath: "/images/tab_settings.png",
       text: ""
     }]
   },
