@@ -8,7 +8,7 @@
 <view class="container-h" style="position: absolute;width: 100%;height: 100%;margin-top: 180rpx;">
   <image src="{{bluetoothAvailable? '../../images/ic_bluetooth_blue.png':'../../images/ic_bluetooth_blue.png'}}" style="height:80rpx;margin-left:20rpx;" mode="heightFix"></image>
     <view style="flex:1;"></view>
-    <text style="color:rgb(229, 249, 255);margin-top:10rpx; font-size: 20px;; ">比德文天驱系统</text>
+    <text style="color:rgb(229, 249, 255);margin-top:10rpx; font-size: 20px;; ">比德文蓝擎系统</text>
     <view style="flex:1;"></view>
     <image src="../../images/ic_scancode.png" style="height:80rpx;margin-right:20rpx;" mode="heightFix" bindtap="scanCode"></image>
 </view>

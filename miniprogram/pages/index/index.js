@@ -183,7 +183,7 @@ Page({
     that.setData({
       logo: sputil.getLogo(),
       connected: isConnected,
-      is_kzb: selectedDevice && selectedDevice.name.startsWith('BDW2')
+      is_kzb: selectedDevice && selectedDevice.name.startsWith('SY2') || selectedDevice && selectedDevice.name.startsWith('BD2')
     })
 
     if (isConnected) {

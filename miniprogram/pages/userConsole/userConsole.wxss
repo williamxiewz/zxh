@@ -1,7 +1,7 @@
 @import "../../style/guide.wxss";
 
 .userinfo {
-  margin-top: 20rpx;
+  margin-top: 80rpx;
   height: 140rpx;
   width: 100%;
   background: #fff;
