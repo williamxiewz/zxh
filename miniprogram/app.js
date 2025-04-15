@@ -18,9 +18,13 @@ const DEVICE_TYPES = [
   'LJ1', 'LJ2', //绿佳
   'TB1', //台邦
   'SY1', //三雅
-  'ZS1', //宗申
+  'ZS1','ZS2', //宗申
   'SB1', //深豹
-  'XS1', //小帅
+  'XS1',//小帅
+  'HH1','HH2', //
+  'OP1','OP2', //
+  'HD1','HD2', //
+  'BDW','BD2', //
 ];
 //正则表达式匹配设备类型
 const TYPE_PATTERN = /^[_+]BA[A-F\d][\d]$/;
