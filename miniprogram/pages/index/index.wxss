@@ -6,6 +6,45 @@ page {
   background-size: 100% 100%;
 }
 
+@media (max-height: 750px) {
+  .navgation_bar{
+    margin-top: 150rpx;
+  }
+  .bg_car{
+    margin-top:130rpx;
+    width:48%;
+  }
+  .action_buttons{
+    margin-top: 680rpx;
+  }
+  .action_start{
+    margin-top: 10rpx
+  }
+}
+
+/* 当屏幕高度 >= 750rpx（即物理高度 >= 750px）时应用样式 */
+@media (min-height: 750px) { 
+  .navgation_bar{
+    margin-top: 180rpx;
+  }
+  .bg_car{
+    margin-top:130rpx;
+    width:68%;
+  }
+  .action_buttons{
+    margin-top: 870rpx;
+  }
+
+  .action_start{
+    margin-top: 20rpx;
+  }
+}
+
+
+
+
+
+
 .bottom_bg {
   width: 90%;
   /* background-color: rgb(251, 251, 251); */

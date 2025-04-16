@@ -1,11 +1,11 @@
 <view class="container">
 <!-- 背景 -->
   <view class="container-v" style="width:100%;height: 100%;">
-    <image src="../../images/ctrl_top_bg.png" style="position:absolute;width:100%;height: 100%;" mode="widthFix"/>
+    <image src="../../images/ctrl_top_bg.png" style="position:absolute;width:100%;height: 100%;" />
   </view>
 
 <!-- 标题栏 -->
-<view class="container-h" style="position: absolute;width: 100%;height: 100%;margin-top: 180rpx;">
+<view class="container-h navgation_bar" style="position: absolute;width: 100%;height: 100%;">
   <image src="{{bluetoothAvailable? '../../images/ic_bluetooth_blue.png':'../../images/ic_bluetooth_blue.png'}}" style="height:80rpx;margin-left:20rpx;" mode="heightFix"></image>
     <view style="flex:1;"></view>
     <text style="color:rgb(229, 249, 255);margin-top:10rpx; font-size: 20px;; ">比德文蓝擎系统</text>
@@ -13,18 +13,15 @@
     <image src="../../images/ic_scancode.png" style="height:80rpx;margin-right:20rpx;" mode="heightFix" bindtap="scanCode"></image>
 </view>
 
-
     <view class="container-r" style="width:100%;">
       <view class="container-v" style="width:100%;margin-top:200rpx;align-items: center;">
-        <!-- <image src="{{connected && isStart ? '../../images/img_moto.png':'../../images/img_moto_not_started.png'}}" style="position:absolute;width:68%;margin-top:130rpx;" mode="widthFix" bindtap="test"> -->
-
-          <image src="../../images/img_moto.png" style="position:absolute;width:68%;margin-top:130rpx;" mode="widthFix" bindtap="test">
+          <image class="bg_car" src="../../images/img_moto.png" style="position:absolute;" mode="widthFix" bindtap="test">
         </image>
       </view>
     </view>
 
     <!-- 4个按钮 -->
-    <view class="container-v" style="margin-top: 870rpx;z-index: 2;">
+    <view class="container-v action_buttons" >
       <!-- 未连接设备时的4个功能按键 -->
       <view class="container-r" style="display:{{connected? 'none':'flex'}};">
         <view class="container-h bottom_bg" style="position: absolute;">
@@ -80,7 +77,7 @@
     </view>
 
     <!-- 启动按钮 -->
-    <view class="container-r" style="margin-top: 20rpx;">
+    <view class="container-r action_start">
 
           <image src="../../images/btn_start_disabled.png"  style="display:{{connected? 'none':'flex'}}; width: 320rpx;height: 320rpx;" mode="widthFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="0" />
 
