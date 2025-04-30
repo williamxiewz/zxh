@@ -32,7 +32,7 @@
             <image src="../../images/ic_unlock_disabled.png" class="btn_nor" mode="heightFix" />
           </view>
           <view class="container-r btn_lay">
-            <image src="../../images/ic_call_disabled.png" class="btn_nor" mode="heightFix" />
+            <image src="../../images/{{is_kzb?'ic_kzb_disabled':'ic_call_disabled'}}.png" class="btn_nor" mode="heightFix" />
           </view>
           <view class="container-r btn_lay">
             <image src="../../images/ic_mute_disabled.png" class="btn_nor" mode="heightFix" />
@@ -56,7 +56,7 @@
           </view>
           <!-- 开坐包 -->
           <view class="container-r btn_lay" style="display: {{is_kzb?'flex':'none'}};">
-            <image src="{{selectedBtn === 3 ? '../../images/btn_kzb_active.png' : '../../images/btn_kzb.png'}}" class="btn_nor" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3" />
+            <image src="{{selectedBtn === 3 ? '../../images/ic_kzb_pressed.png' : '../../images/ic_kzb_normal.png'}}" class="btn_nor" mode="heightFix" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd" data-btnindex="3" />
           </view>
           <!-- 静音 -->
           <view class="container-r btn_lay">
