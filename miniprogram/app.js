@@ -122,6 +122,7 @@ App({
         
         let b1 = (mfrHead == 'BDW' || mfrHead == 'BD2' || mac == '2B021DD25B4C') && TYPE_PATTERN.test(deviceType);
         let b2 = (mfrHead == 'SY1' || mfrHead == 'SY2' || mac == '2B021DD25B4C') && TYPE_PATTERN.test(deviceType);
+        // let b2 = (mfrHead == 'ZS1' || mfrHead == 'ZS2' || mac == '2B021DD25B4C') && TYPE_PATTERN.test(deviceType);
         let b3 = mfrHead == 'ZXH' && TYPE_PATTERN_8.test(deviceType);
         if (b1 || b2 || b3) {
           let num = parseInt(deviceType.substring(3, 5), 16);

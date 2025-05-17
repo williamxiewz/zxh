@@ -25,7 +25,7 @@ const ADD_DEVICE_MSG = '请使用原车遥控器同时按住锁键和开锁键3�
 //我的设备MAC：383995486621
 Page({
   data: {
-    appVersion:'V1.0.1',
+    appVersion:'V1.0.2',
     canIUseGetUserProfile: false,
     logged: false,
     avatarUrl: '../../images/user-unlogin.png',
