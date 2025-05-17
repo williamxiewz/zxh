@@ -26,7 +26,9 @@ App({
     myuser: {},
     isNetworkOn: true,
     appHidden: true,
-    isActivated: false //账号是否已通过激活码激活
+    isActivated: false, //账号是否已通过激活码激活
+    navBarHeight: 0, // 导航栏总高度
+    statusBarHeight: 0, // 状态栏高度
   },
 
 ///------------------------------------------------------------------
@@ -40,8 +42,17 @@ App({
         traceUser: true,
       });
     }
-
     this.globalData = {}
+
+    const systemInfo = wx.getSystemInfoSync();
+    const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
+    const statusBarHeight = systemInfo.statusBarHeight;
+    // 导航栏高度 = 状态栏高度 + (胶囊按钮距顶部距离 - 状态栏高度)*2 + 胶囊高度
+    const navBarHeight = (menuButtonInfo.top - statusBarHeight) * 2 + menuButtonInfo.height + statusBarHeight;
+    this.globalData.navBarHeight = navBarHeight;
+    this.globalData.statusBarHeight = statusBarHeight;
+
+    
 
     //监听蓝牙状态
     wx.onBluetoothAdapterStateChange((result) => {

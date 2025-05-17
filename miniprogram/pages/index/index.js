@@ -28,9 +28,41 @@ const MP3_ID_ARRAY = [
   'cloud://zxh-9g5pei38c7cdc56d.7a78-zxh-9g5pei38c7cdc56d-1304902263/audios/error.mp3' //error
 ]
 const themeTypeArray = ['','']
+const defaultButtonConfig = [
+  {
+    index: 1,
+    label: '上锁',
+    normalIcon: '../../images/ic_lock_normal.png',
+    activeIcon: '../../images/ic_lock_pressed.png',
+    disabledIcon: '../../images/ic_lock_disabled.png'
+  },
+  {
+    index: 2,
+    label: '解锁',
+    normalIcon: '../../images/ic_unlock_normal.png',
+    activeIcon: '../../images/ic_unlock_pressed.png',
+    disabledIcon: '../../images/ic_unlock_disabled.png'
+  },
+  {
+    index: 3, // 第3个按钮后续替换
+    label: '',
+    normalIcon: '',
+    activeIcon: '',
+    disabledIcon: ''
+  },
+  {
+    index: 4,
+    label: '静音',
+    normalIcon: '../../images/ic_mute_normal.png',
+    activeIcon: '../../images/ic_mute_pressed.png',
+    disabledIcon: '../../images/ic_mute_disabled.png'
+  }
+];
 
 Page({
   data: {
+    navBarHeight: getApp().globalData.navBarHeight,
+    statusBarHeight: getApp().globalData.statusBarHeight,
     theme:0,
     themetitle:'',
     logo: '', //标题
@@ -52,13 +84,23 @@ Page({
     timerCount: 0, //计数器
     ganyingOn: false, //感应是否打开
     ganyingValue: 3, //
-    is_kzb: false //是否是开坐包设备
+    is_kzb: false, //是否是开坐包设备
+
+    screenLevel: 'mid', // small | mid | large
+    buttonConfig: [],
   },
   
   // 生命周期
   onLoad: function () {
     var that = this;
-
+    const height = wx.getSystemInfoSync().windowHeight;
+    const width = wx.getSystemInfoSync().windowWidth;
+    console.log("width,height",width,height)
+    let level = 'mid';
+    if (height < 650) level = 'small';
+    else if (height > 850) level = 'large';
+    this.setData({ screenLevel: level });
+    this.updateButtonConfigByMode(false)
     wx.getBluetoothAdapterState({
       success: (result) => {
         that.setData({
@@ -158,6 +200,7 @@ Page({
 
     })
   }, 
+
   onShow: function () {
     var that = this;
     //状态栏颜色
@@ -186,6 +229,11 @@ Page({
       is_kzb: selectedDevice && selectedDevice.name.startsWith('SY2') || selectedDevice && selectedDevice.name.startsWith('BD2')
     })
 
+    if(this.data.is_kzb) {
+      this.updateButtonConfigByMode(true)
+    }
+    
+    
     if (isConnected) {
       wx.setNavigationBarTitle({
         title: sputil.getThemeTitle()
@@ -577,6 +625,29 @@ Page({
     });
     return isShare;
   },
+
+  updateButtonConfigByMode(isKzb) {
+    const config = JSON.parse(JSON.stringify(defaultButtonConfig)); // 深拷贝，防止污染
+  
+    config[2] = isKzb
+      ? {
+          index: 3,
+          label: '开坐包',
+          normalIcon: '../../images/ic_kzb_normal.png',
+          activeIcon: '../../images/ic_kzb_pressed.png',
+          disabledIcon: '../../images/ic_kzb_disabled.png'
+        }
+      : {
+          index: 3,
+          label: '寻车',
+          normalIcon: '../../images/ic_call_normal.png',
+          activeIcon: '../../images/ic_call_pressed.png',
+          disabledIcon: '../../images/ic_call_disabled.png'
+        };
+  
+    this.setData({ buttonConfig: config });
+  },
+  
   //播放报警音
   playBackgroundAudio: function () {
     var that = this
